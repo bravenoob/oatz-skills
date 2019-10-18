@@ -1,0 +1,37 @@
+{
+  "generator-jhipster": {
+    "promptValues": {
+      "packageName": "com.bd.bern"
+    },
+    "jhipsterVersion": "6.4.1",
+    "applicationType": "microservice",
+    "baseName": "oatz",
+    "packageName": "com.bd.bern",
+    "packageFolder": "com/bd/bern",
+    "serverPort": "8081",
+    "authenticationType": "jwt",
+    "cacheProvider": "hazelcast",
+    "enableHibernateCache": true,
+    "websocket": false,
+    "databaseType": "sql",
+    "devDatabaseType": "h2Disk",
+    "prodDatabaseType": "postgresql",
+    "searchEngine": "elasticsearch",
+    "messageBroker": false,
+    "serviceDiscoveryType": "eureka",
+    "buildTool": "maven",
+    "enableSwaggerCodegen": true,
+    "jwtSecretKey": "ZjJlZTE3NjY2Y2M1YzgzODllN2QwYTgxMDZhMmE1YTdhZmMwY2Q4ZjNiODFjMDZiMWYxYmI1OWQ5ZmZlMGZhNGI5NmE2ZTMxYmRhZjllMjQ3OWJjM2UyODAxMmJhNzU5OTE2OGExY2JlMzYxZTY0NTcyNzhiNDJiNDc4Y2IxMDI=",
+    "embeddableLaunchScript": false,
+    "testFrameworks": [],
+    "jhiPrefix": "jhi",
+    "entitySuffix": "",
+    "dtoSuffix": "DTO",
+    "otherModules": [],
+    "enableTranslation": false,
+    "clientPackageManager": "npm",
+    "blueprints": [],
+    "skipClient": true,
+    "skipUserManagement": true
+  }
+}
