@@ -1,9 +1,9 @@
 version: '2'
 services:
-  oatz-elasticsearch:
+  oatzskill-elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
     # volumes:
-    #     - ~/volumes/jhipster/oatz/elasticsearch/:/usr/share/elasticsearch/data/
+    #     - ~/volumes/jhipster/oatzSkill/elasticsearch/:/usr/share/elasticsearch/data/
     ports:
       - 9200:9200
       - 9300:9300

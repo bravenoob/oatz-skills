@@ -1,7 +1,7 @@
 {
-  "name": "oatz",
+  "name": "oatz-skill",
   "version": "0.0.0",
-  "description": "Description for oatz",
+  "description": "Description for oatzSkill",
   "private": true,
   "license": "UNLICENSED",
   "cacheDirectories": [

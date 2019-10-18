@@ -1,0 +1,40 @@
+entity Skill {
+	skillName String required
+}
+
+entity SkillApplied {
+	userId Long,
+	usedAt LocalDate required,
+	description String
+}
+
+entity Enterprise {
+	title String required
+}
+
+entity Project{
+	title String required,
+	description String,
+    type Type required    
+}
+
+enum Type {
+    PROJECT, COURSE
+}
+
+relationship ManyToOne {
+	SkillApplied{skill required} to Skill{appliedSkills},
+    SkillApplied{project required} to Project{appliedSkills},
+    Project{enterprise required} to Enterprise{projects}
+}
+
+// Set pagination options
+paginate SkillApplied with infinite-scroll
+paginate Skill, Project, Enterprise with pagination
+
+// Use Data Transfert Objects (DTO)
+// dto * with mapstruct
+
+filter Skill, SkillApplied, Project, Enterprise
+// Set an angular suffix
+// angularSuffix * with mySuffix

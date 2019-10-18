@@ -1,0 +1,31 @@
+{
+    "name": "Enterprise",
+    "fields": [
+        {
+            "fieldName": "title",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "one-to-many",
+            "otherEntityName": "project",
+            "otherEntityRelationshipName": "enterprise",
+            "relationshipName": "projects"
+        }
+    ],
+    "changelogDate": "20191018120747",
+    "entityTableName": "enterprise",
+    "dto": "no",
+    "pagination": "pagination",
+    "service": "serviceClass",
+    "jpaMetamodelFiltering": true,
+    "fluentMethods": true,
+    "readOnly": false,
+    "clientRootFolder": "oatzSkill",
+    "applications": "*",
+    "microserviceName": "oatzSkill"
+}

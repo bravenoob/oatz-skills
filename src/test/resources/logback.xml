@@ -4,7 +4,7 @@
 <configuration scan="true">
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
-    <logger name="com.bd.bern" level="INFO"/>
+    <logger name="com.bd.bern.oatz" level="INFO"/>
 
     <logger name="io.github.jhipster" level="WARN"/>
 

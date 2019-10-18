@@ -1,11 +1,11 @@
 version: '2'
 services:
-  oatz-postgresql:
+  oatzskill-postgresql:
     image: postgres:11.5
     # volumes:
-    #     - ~/volumes/jhipster/oatz/postgresql/:/var/lib/postgresql/data/
+    #     - ~/volumes/jhipster/oatzSkill/postgresql/:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=oatz
+      - POSTGRES_USER=oatzSkill
       - POSTGRES_PASSWORD=
     ports:
       - 5432:5432
