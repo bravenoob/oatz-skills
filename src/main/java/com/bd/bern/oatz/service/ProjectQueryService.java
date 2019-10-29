@@ -98,13 +98,12 @@ public class ProjectQueryService extends QueryService<Project> {
             if (criteria.getType() != null) {
                 specification = specification.and(buildSpecification(criteria.getType(), Project_.type));
             }
+            if (criteria.getUserId() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getUserId(), Project_.userId));
+            }
             if (criteria.getEnterpriseId() != null) {
                 specification = specification.and(buildSpecification(criteria.getEnterpriseId(),
                     root -> root.join(Project_.enterprise, JoinType.LEFT).get(Enterprise_.id)));
-            }
-            if (criteria.getAppliedSkillsId() != null) {
-                specification = specification.and(buildSpecification(criteria.getAppliedSkillsId(),
-                    root -> root.join(Project_.appliedSkills, JoinType.LEFT).get(SkillApplied_.id)));
             }
         }
         return specification;

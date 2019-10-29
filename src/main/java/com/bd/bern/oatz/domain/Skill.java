@@ -7,8 +7,6 @@ import javax.validation.constraints.*;
 
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * A Skill.
@@ -31,10 +29,6 @@ public class Skill implements Serializable {
     @Column(name = "skill_name", nullable = false)
     private String skillName;
 
-    @OneToMany(mappedBy = "skill")
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    private Set<SkillApplied> appliedSkills = new HashSet<>();
-
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
@@ -55,31 +49,6 @@ public class Skill implements Serializable {
 
     public void setSkillName(String skillName) {
         this.skillName = skillName;
-    }
-
-    public Set<SkillApplied> getAppliedSkills() {
-        return appliedSkills;
-    }
-
-    public Skill appliedSkills(Set<SkillApplied> skillApplieds) {
-        this.appliedSkills = skillApplieds;
-        return this;
-    }
-
-    public Skill addAppliedSkills(SkillApplied skillApplied) {
-        this.appliedSkills.add(skillApplied);
-        skillApplied.setSkill(this);
-        return this;
-    }
-
-    public Skill removeAppliedSkills(SkillApplied skillApplied) {
-        this.appliedSkills.remove(skillApplied);
-        skillApplied.setSkill(null);
-        return this;
-    }
-
-    public void setAppliedSkills(Set<SkillApplied> skillApplieds) {
-        this.appliedSkills = skillApplieds;
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 

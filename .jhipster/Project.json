@@ -19,6 +19,13 @@
             "fieldValidateRules": [
                 "required"
             ]
+        },
+        {
+            "fieldName": "userId",
+            "fieldType": "Long",
+            "fieldValidateRules": [
+                "required"
+            ]
         }
     ],
     "relationships": [
@@ -29,12 +36,6 @@
             "relationshipValidateRules": "required",
             "relationshipName": "enterprise",
             "otherEntityField": "id"
-        },
-        {
-            "relationshipType": "one-to-many",
-            "otherEntityName": "skillApplied",
-            "otherEntityRelationshipName": "project",
-            "relationshipName": "appliedSkills"
         }
     ],
     "changelogDate": "20191018120748",
@@ -47,5 +48,7 @@
     "readOnly": false,
     "clientRootFolder": "oatzSkill",
     "applications": "*",
-    "microserviceName": "oatzSkill"
+    "microserviceName": "oatzSkill",
+    "searchEngine": "elasticsearch",
+    "databaseType": "sql"
 }

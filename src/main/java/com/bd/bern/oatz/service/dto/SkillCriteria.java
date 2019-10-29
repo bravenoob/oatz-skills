@@ -28,15 +28,12 @@ public class SkillCriteria implements Serializable, Criteria {
 
     private StringFilter skillName;
 
-    private LongFilter appliedSkillsId;
-
     public SkillCriteria(){
     }
 
     public SkillCriteria(SkillCriteria other){
         this.id = other.id == null ? null : other.id.copy();
         this.skillName = other.skillName == null ? null : other.skillName.copy();
-        this.appliedSkillsId = other.appliedSkillsId == null ? null : other.appliedSkillsId.copy();
     }
 
     @Override
@@ -60,14 +57,6 @@ public class SkillCriteria implements Serializable, Criteria {
         this.skillName = skillName;
     }
 
-    public LongFilter getAppliedSkillsId() {
-        return appliedSkillsId;
-    }
-
-    public void setAppliedSkillsId(LongFilter appliedSkillsId) {
-        this.appliedSkillsId = appliedSkillsId;
-    }
-
 
     @Override
     public boolean equals(Object o) {
@@ -80,16 +69,14 @@ public class SkillCriteria implements Serializable, Criteria {
         final SkillCriteria that = (SkillCriteria) o;
         return
             Objects.equals(id, that.id) &&
-            Objects.equals(skillName, that.skillName) &&
-            Objects.equals(appliedSkillsId, that.appliedSkillsId);
+            Objects.equals(skillName, that.skillName);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
         id,
-        skillName,
-        appliedSkillsId
+        skillName
         );
     }
 
@@ -98,7 +85,6 @@ public class SkillCriteria implements Serializable, Criteria {
         return "SkillCriteria{" +
                 (id != null ? "id=" + id + ", " : "") +
                 (skillName != null ? "skillName=" + skillName + ", " : "") +
-                (appliedSkillsId != null ? "appliedSkillsId=" + appliedSkillsId + ", " : "") +
             "}";
     }
 

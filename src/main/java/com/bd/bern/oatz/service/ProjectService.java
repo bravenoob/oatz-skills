@@ -5,7 +5,6 @@ import com.bd.bern.oatz.repository.ProjectRepository;
 import com.bd.bern.oatz.repository.search.ProjectSearchRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -13,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 /**
  * Service Implementation for managing {@link Project}.
@@ -58,6 +57,12 @@ public class ProjectService {
         return projectRepository.findAll(pageable);
     }
 
+    @Transactional(readOnly = true)
+    public Page<Project> findAllByUser(Long userId, Pageable pageable) {
+        log.debug("Request to get all Projects");
+        return projectRepository.findAllByUserId(userId, pageable);
+    }
+
 
     /**
      * Get one project by id.
@@ -85,12 +90,13 @@ public class ProjectService {
     /**
      * Search for the project corresponding to the query.
      *
-     * @param query the query of the search.
+     * @param query    the query of the search.
      * @param pageable the pagination information.
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
     public Page<Project> search(String query, Pageable pageable) {
         log.debug("Request to search for a page of Projects for query {}", query);
-        return projectSearchRepository.search(queryStringQuery(query), pageable);    }
+        return projectSearchRepository.search(queryStringQuery(query), pageable);
+    }
 }

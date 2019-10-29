@@ -51,9 +51,9 @@ public class ProjectCriteria implements Serializable, Criteria {
 
     private TypeFilter type;
 
-    private LongFilter enterpriseId;
+    private LongFilter userId;
 
-    private LongFilter appliedSkillsId;
+    private LongFilter enterpriseId;
 
     public ProjectCriteria(){
     }
@@ -63,8 +63,8 @@ public class ProjectCriteria implements Serializable, Criteria {
         this.title = other.title == null ? null : other.title.copy();
         this.description = other.description == null ? null : other.description.copy();
         this.type = other.type == null ? null : other.type.copy();
+        this.userId = other.userId == null ? null : other.userId.copy();
         this.enterpriseId = other.enterpriseId == null ? null : other.enterpriseId.copy();
-        this.appliedSkillsId = other.appliedSkillsId == null ? null : other.appliedSkillsId.copy();
     }
 
     @Override
@@ -104,20 +104,20 @@ public class ProjectCriteria implements Serializable, Criteria {
         this.type = type;
     }
 
+    public LongFilter getUserId() {
+        return userId;
+    }
+
+    public void setUserId(LongFilter userId) {
+        this.userId = userId;
+    }
+
     public LongFilter getEnterpriseId() {
         return enterpriseId;
     }
 
     public void setEnterpriseId(LongFilter enterpriseId) {
         this.enterpriseId = enterpriseId;
-    }
-
-    public LongFilter getAppliedSkillsId() {
-        return appliedSkillsId;
-    }
-
-    public void setAppliedSkillsId(LongFilter appliedSkillsId) {
-        this.appliedSkillsId = appliedSkillsId;
     }
 
 
@@ -135,8 +135,8 @@ public class ProjectCriteria implements Serializable, Criteria {
             Objects.equals(title, that.title) &&
             Objects.equals(description, that.description) &&
             Objects.equals(type, that.type) &&
-            Objects.equals(enterpriseId, that.enterpriseId) &&
-            Objects.equals(appliedSkillsId, that.appliedSkillsId);
+            Objects.equals(userId, that.userId) &&
+            Objects.equals(enterpriseId, that.enterpriseId);
     }
 
     @Override
@@ -146,8 +146,8 @@ public class ProjectCriteria implements Serializable, Criteria {
         title,
         description,
         type,
-        enterpriseId,
-        appliedSkillsId
+        userId,
+        enterpriseId
         );
     }
 
@@ -158,8 +158,8 @@ public class ProjectCriteria implements Serializable, Criteria {
                 (title != null ? "title=" + title + ", " : "") +
                 (description != null ? "description=" + description + ", " : "") +
                 (type != null ? "type=" + type + ", " : "") +
+                (userId != null ? "userId=" + userId + ", " : "") +
                 (enterpriseId != null ? "enterpriseId=" + enterpriseId + ", " : "") +
-                (appliedSkillsId != null ? "appliedSkillsId=" + appliedSkillsId + ", " : "") +
             "}";
     }
 

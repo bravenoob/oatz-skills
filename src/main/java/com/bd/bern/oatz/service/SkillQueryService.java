@@ -92,10 +92,6 @@ public class SkillQueryService extends QueryService<Skill> {
             if (criteria.getSkillName() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getSkillName(), Skill_.skillName));
             }
-            if (criteria.getAppliedSkillsId() != null) {
-                specification = specification.and(buildSpecification(criteria.getAppliedSkillsId(),
-                    root -> root.join(Skill_.appliedSkills, JoinType.LEFT).get(SkillApplied_.id)));
-            }
         }
         return specification;
     }

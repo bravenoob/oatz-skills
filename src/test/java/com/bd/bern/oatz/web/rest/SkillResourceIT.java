@@ -2,7 +2,6 @@ package com.bd.bern.oatz.web.rest;
 
 import com.bd.bern.oatz.OatzSkillApp;
 import com.bd.bern.oatz.domain.Skill;
-import com.bd.bern.oatz.domain.SkillApplied;
 import com.bd.bern.oatz.repository.SkillRepository;
 import com.bd.bern.oatz.repository.search.SkillSearchRepository;
 import com.bd.bern.oatz.service.SkillService;
@@ -287,26 +286,6 @@ public class SkillResourceIT {
 
         // Get all the skillList where skillName does not contain UPDATED_SKILL_NAME
         defaultSkillShouldBeFound("skillName.doesNotContain=" + UPDATED_SKILL_NAME);
-    }
-
-
-    @Test
-    @Transactional
-    public void getAllSkillsByAppliedSkillsIsEqualToSomething() throws Exception {
-        // Initialize the database
-        skillRepository.saveAndFlush(skill);
-        SkillApplied appliedSkills = SkillAppliedResourceIT.createEntity(em);
-        em.persist(appliedSkills);
-        em.flush();
-        skill.addAppliedSkills(appliedSkills);
-        skillRepository.saveAndFlush(skill);
-        Long appliedSkillsId = appliedSkills.getId();
-
-        // Get all the skillList where appliedSkills equals to appliedSkillsId
-        defaultSkillShouldBeFound("appliedSkillsId.equals=" + appliedSkillsId);
-
-        // Get all the skillList where appliedSkills equals to appliedSkillsId + 1
-        defaultSkillShouldNotBeFound("appliedSkillsId.equals=" + (appliedSkillsId + 1));
     }
 
     /**

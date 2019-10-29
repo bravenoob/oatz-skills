@@ -8,8 +8,6 @@ import javax.validation.constraints.*;
 
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 import com.bd.bern.oatz.domain.enumeration.Type;
 
@@ -42,14 +40,14 @@ public class Project implements Serializable {
     @Column(name = "type", nullable = false)
     private Type type;
 
+    @NotNull
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
     @ManyToOne(optional = false)
     @NotNull
     @JsonIgnoreProperties("projects")
     private Enterprise enterprise;
-
-    @OneToMany(mappedBy = "project")
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    private Set<SkillApplied> appliedSkills = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -99,6 +97,19 @@ public class Project implements Serializable {
         this.type = type;
     }
 
+    public Long getUserId() {
+        return userId;
+    }
+
+    public Project userId(Long userId) {
+        this.userId = userId;
+        return this;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
     public Enterprise getEnterprise() {
         return enterprise;
     }
@@ -110,31 +121,6 @@ public class Project implements Serializable {
 
     public void setEnterprise(Enterprise enterprise) {
         this.enterprise = enterprise;
-    }
-
-    public Set<SkillApplied> getAppliedSkills() {
-        return appliedSkills;
-    }
-
-    public Project appliedSkills(Set<SkillApplied> skillApplieds) {
-        this.appliedSkills = skillApplieds;
-        return this;
-    }
-
-    public Project addAppliedSkills(SkillApplied skillApplied) {
-        this.appliedSkills.add(skillApplied);
-        skillApplied.setProject(this);
-        return this;
-    }
-
-    public Project removeAppliedSkills(SkillApplied skillApplied) {
-        this.appliedSkills.remove(skillApplied);
-        skillApplied.setProject(null);
-        return this;
-    }
-
-    public void setAppliedSkills(Set<SkillApplied> skillApplieds) {
-        this.appliedSkills = skillApplieds;
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
@@ -161,6 +147,7 @@ public class Project implements Serializable {
             ", title='" + getTitle() + "'" +
             ", description='" + getDescription() + "'" +
             ", type='" + getType() + "'" +
+            ", userId=" + getUserId() +
             "}";
     }
 }

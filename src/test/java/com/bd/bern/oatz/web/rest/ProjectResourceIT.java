@@ -3,7 +3,6 @@ package com.bd.bern.oatz.web.rest;
 import com.bd.bern.oatz.OatzSkillApp;
 import com.bd.bern.oatz.domain.Project;
 import com.bd.bern.oatz.domain.Enterprise;
-import com.bd.bern.oatz.domain.SkillApplied;
 import com.bd.bern.oatz.repository.ProjectRepository;
 import com.bd.bern.oatz.repository.search.ProjectSearchRepository;
 import com.bd.bern.oatz.service.ProjectService;
@@ -53,6 +52,10 @@ public class ProjectResourceIT {
 
     private static final Type DEFAULT_TYPE = Type.PROJECT;
     private static final Type UPDATED_TYPE = Type.COURSE;
+
+    private static final Long DEFAULT_USER_ID = 1L;
+    private static final Long UPDATED_USER_ID = 2L;
+    private static final Long SMALLER_USER_ID = 1L - 1L;
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -112,7 +115,8 @@ public class ProjectResourceIT {
         Project project = new Project()
             .title(DEFAULT_TITLE)
             .description(DEFAULT_DESCRIPTION)
-            .type(DEFAULT_TYPE);
+            .type(DEFAULT_TYPE)
+            .userId(DEFAULT_USER_ID);
         // Add required entity
         Enterprise enterprise;
         if (TestUtil.findAll(em, Enterprise.class).isEmpty()) {
@@ -135,7 +139,8 @@ public class ProjectResourceIT {
         Project project = new Project()
             .title(UPDATED_TITLE)
             .description(UPDATED_DESCRIPTION)
-            .type(UPDATED_TYPE);
+            .type(UPDATED_TYPE)
+            .userId(UPDATED_USER_ID);
         // Add required entity
         Enterprise enterprise;
         if (TestUtil.findAll(em, Enterprise.class).isEmpty()) {
@@ -172,6 +177,7 @@ public class ProjectResourceIT {
         assertThat(testProject.getTitle()).isEqualTo(DEFAULT_TITLE);
         assertThat(testProject.getDescription()).isEqualTo(DEFAULT_DESCRIPTION);
         assertThat(testProject.getType()).isEqualTo(DEFAULT_TYPE);
+        assertThat(testProject.getUserId()).isEqualTo(DEFAULT_USER_ID);
 
         // Validate the Project in Elasticsearch
         verify(mockProjectSearchRepository, times(1)).save(testProject);
@@ -238,6 +244,24 @@ public class ProjectResourceIT {
 
     @Test
     @Transactional
+    public void checkUserIdIsRequired() throws Exception {
+        int databaseSizeBeforeTest = projectRepository.findAll().size();
+        // set the field null
+        project.setUserId(null);
+
+        // Create the Project, which fails.
+
+        restProjectMockMvc.perform(post("/api/projects")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(project)))
+            .andExpect(status().isBadRequest());
+
+        List<Project> projectList = projectRepository.findAll();
+        assertThat(projectList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     public void getAllProjects() throws Exception {
         // Initialize the database
         projectRepository.saveAndFlush(project);
@@ -249,7 +273,8 @@ public class ProjectResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(project.getId().intValue())))
             .andExpect(jsonPath("$.[*].title").value(hasItem(DEFAULT_TITLE)))
             .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
-            .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())));
+            .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())))
+            .andExpect(jsonPath("$.[*].userId").value(hasItem(DEFAULT_USER_ID.intValue())));
     }
     
     @Test
@@ -265,7 +290,8 @@ public class ProjectResourceIT {
             .andExpect(jsonPath("$.id").value(project.getId().intValue()))
             .andExpect(jsonPath("$.title").value(DEFAULT_TITLE))
             .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION))
-            .andExpect(jsonPath("$.type").value(DEFAULT_TYPE.toString()));
+            .andExpect(jsonPath("$.type").value(DEFAULT_TYPE.toString()))
+            .andExpect(jsonPath("$.userId").value(DEFAULT_USER_ID.intValue()));
     }
 
     @Test
@@ -478,6 +504,111 @@ public class ProjectResourceIT {
 
     @Test
     @Transactional
+    public void getAllProjectsByUserIdIsEqualToSomething() throws Exception {
+        // Initialize the database
+        projectRepository.saveAndFlush(project);
+
+        // Get all the projectList where userId equals to DEFAULT_USER_ID
+        defaultProjectShouldBeFound("userId.equals=" + DEFAULT_USER_ID);
+
+        // Get all the projectList where userId equals to UPDATED_USER_ID
+        defaultProjectShouldNotBeFound("userId.equals=" + UPDATED_USER_ID);
+    }
+
+    @Test
+    @Transactional
+    public void getAllProjectsByUserIdIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        projectRepository.saveAndFlush(project);
+
+        // Get all the projectList where userId not equals to DEFAULT_USER_ID
+        defaultProjectShouldNotBeFound("userId.notEquals=" + DEFAULT_USER_ID);
+
+        // Get all the projectList where userId not equals to UPDATED_USER_ID
+        defaultProjectShouldBeFound("userId.notEquals=" + UPDATED_USER_ID);
+    }
+
+    @Test
+    @Transactional
+    public void getAllProjectsByUserIdIsInShouldWork() throws Exception {
+        // Initialize the database
+        projectRepository.saveAndFlush(project);
+
+        // Get all the projectList where userId in DEFAULT_USER_ID or UPDATED_USER_ID
+        defaultProjectShouldBeFound("userId.in=" + DEFAULT_USER_ID + "," + UPDATED_USER_ID);
+
+        // Get all the projectList where userId equals to UPDATED_USER_ID
+        defaultProjectShouldNotBeFound("userId.in=" + UPDATED_USER_ID);
+    }
+
+    @Test
+    @Transactional
+    public void getAllProjectsByUserIdIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        projectRepository.saveAndFlush(project);
+
+        // Get all the projectList where userId is not null
+        defaultProjectShouldBeFound("userId.specified=true");
+
+        // Get all the projectList where userId is null
+        defaultProjectShouldNotBeFound("userId.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllProjectsByUserIdIsGreaterThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        projectRepository.saveAndFlush(project);
+
+        // Get all the projectList where userId is greater than or equal to DEFAULT_USER_ID
+        defaultProjectShouldBeFound("userId.greaterThanOrEqual=" + DEFAULT_USER_ID);
+
+        // Get all the projectList where userId is greater than or equal to UPDATED_USER_ID
+        defaultProjectShouldNotBeFound("userId.greaterThanOrEqual=" + UPDATED_USER_ID);
+    }
+
+    @Test
+    @Transactional
+    public void getAllProjectsByUserIdIsLessThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        projectRepository.saveAndFlush(project);
+
+        // Get all the projectList where userId is less than or equal to DEFAULT_USER_ID
+        defaultProjectShouldBeFound("userId.lessThanOrEqual=" + DEFAULT_USER_ID);
+
+        // Get all the projectList where userId is less than or equal to SMALLER_USER_ID
+        defaultProjectShouldNotBeFound("userId.lessThanOrEqual=" + SMALLER_USER_ID);
+    }
+
+    @Test
+    @Transactional
+    public void getAllProjectsByUserIdIsLessThanSomething() throws Exception {
+        // Initialize the database
+        projectRepository.saveAndFlush(project);
+
+        // Get all the projectList where userId is less than DEFAULT_USER_ID
+        defaultProjectShouldNotBeFound("userId.lessThan=" + DEFAULT_USER_ID);
+
+        // Get all the projectList where userId is less than UPDATED_USER_ID
+        defaultProjectShouldBeFound("userId.lessThan=" + UPDATED_USER_ID);
+    }
+
+    @Test
+    @Transactional
+    public void getAllProjectsByUserIdIsGreaterThanSomething() throws Exception {
+        // Initialize the database
+        projectRepository.saveAndFlush(project);
+
+        // Get all the projectList where userId is greater than DEFAULT_USER_ID
+        defaultProjectShouldNotBeFound("userId.greaterThan=" + DEFAULT_USER_ID);
+
+        // Get all the projectList where userId is greater than SMALLER_USER_ID
+        defaultProjectShouldBeFound("userId.greaterThan=" + SMALLER_USER_ID);
+    }
+
+
+    @Test
+    @Transactional
     public void getAllProjectsByEnterpriseIsEqualToSomething() throws Exception {
         // Get already existing entity
         Enterprise enterprise = project.getEnterprise();
@@ -491,26 +622,6 @@ public class ProjectResourceIT {
         defaultProjectShouldNotBeFound("enterpriseId.equals=" + (enterpriseId + 1));
     }
 
-
-    @Test
-    @Transactional
-    public void getAllProjectsByAppliedSkillsIsEqualToSomething() throws Exception {
-        // Initialize the database
-        projectRepository.saveAndFlush(project);
-        SkillApplied appliedSkills = SkillAppliedResourceIT.createEntity(em);
-        em.persist(appliedSkills);
-        em.flush();
-        project.addAppliedSkills(appliedSkills);
-        projectRepository.saveAndFlush(project);
-        Long appliedSkillsId = appliedSkills.getId();
-
-        // Get all the projectList where appliedSkills equals to appliedSkillsId
-        defaultProjectShouldBeFound("appliedSkillsId.equals=" + appliedSkillsId);
-
-        // Get all the projectList where appliedSkills equals to appliedSkillsId + 1
-        defaultProjectShouldNotBeFound("appliedSkillsId.equals=" + (appliedSkillsId + 1));
-    }
-
     /**
      * Executes the search, and checks that the default entity is returned.
      */
@@ -521,7 +632,8 @@ public class ProjectResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(project.getId().intValue())))
             .andExpect(jsonPath("$.[*].title").value(hasItem(DEFAULT_TITLE)))
             .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
-            .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())));
+            .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())))
+            .andExpect(jsonPath("$.[*].userId").value(hasItem(DEFAULT_USER_ID.intValue())));
 
         // Check, that the count call also returns 1
         restProjectMockMvc.perform(get("/api/projects/count?sort=id,desc&" + filter))
@@ -573,7 +685,8 @@ public class ProjectResourceIT {
         updatedProject
             .title(UPDATED_TITLE)
             .description(UPDATED_DESCRIPTION)
-            .type(UPDATED_TYPE);
+            .type(UPDATED_TYPE)
+            .userId(UPDATED_USER_ID);
 
         restProjectMockMvc.perform(put("/api/projects")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
@@ -587,6 +700,7 @@ public class ProjectResourceIT {
         assertThat(testProject.getTitle()).isEqualTo(UPDATED_TITLE);
         assertThat(testProject.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
         assertThat(testProject.getType()).isEqualTo(UPDATED_TYPE);
+        assertThat(testProject.getUserId()).isEqualTo(UPDATED_USER_ID);
 
         // Validate the Project in Elasticsearch
         verify(mockProjectSearchRepository, times(1)).save(testProject);
@@ -648,7 +762,8 @@ public class ProjectResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(project.getId().intValue())))
             .andExpect(jsonPath("$.[*].title").value(hasItem(DEFAULT_TITLE)))
             .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
-            .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())));
+            .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())))
+            .andExpect(jsonPath("$.[*].userId").value(hasItem(DEFAULT_USER_ID.intValue())));
     }
 
     @Test

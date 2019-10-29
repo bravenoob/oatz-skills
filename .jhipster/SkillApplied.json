@@ -37,7 +37,7 @@
     ],
     "changelogDate": "20191018120746",
     "entityTableName": "skill_applied",
-    "dto": "no",
+    "dto": "yes",
     "pagination": "infinite-scroll",
     "service": "serviceClass",
     "jpaMetamodelFiltering": true,
