@@ -40,7 +40,7 @@
     ],
     "changelogDate": "20191018120748",
     "entityTableName": "project",
-    "dto": "no",
+    "dto": "mapstruct",
     "pagination": "pagination",
     "service": "serviceClass",
     "jpaMetamodelFiltering": true,

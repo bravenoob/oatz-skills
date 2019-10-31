@@ -1,8 +1,8 @@
 package com.bd.bern.oatz.web.rest;
 
-import com.bd.bern.oatz.domain.SkillApplied;
 import com.bd.bern.oatz.service.SkillAppliedService;
 import com.bd.bern.oatz.web.rest.errors.BadRequestAlertException;
+import com.bd.bern.oatz.service.dto.SkillAppliedDTO;
 import com.bd.bern.oatz.service.dto.SkillAppliedCriteria;
 import com.bd.bern.oatz.service.SkillAppliedQueryService;
 
@@ -56,17 +56,17 @@ public class SkillAppliedResource {
     /**
      * {@code POST  /skill-applieds} : Create a new skillApplied.
      *
-     * @param skillApplied the skillApplied to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new skillApplied, or with status {@code 400 (Bad Request)} if the skillApplied has already an ID.
+     * @param skillAppliedDTO the skillAppliedDTO to create.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new skillAppliedDTO, or with status {@code 400 (Bad Request)} if the skillApplied has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/skill-applieds")
-    public ResponseEntity<SkillApplied> createSkillApplied(@Valid @RequestBody SkillApplied skillApplied) throws URISyntaxException {
-        log.debug("REST request to save SkillApplied : {}", skillApplied);
-        if (skillApplied.getId() != null) {
+    public ResponseEntity<SkillAppliedDTO> createSkillApplied(@Valid @RequestBody SkillAppliedDTO skillAppliedDTO) throws URISyntaxException {
+        log.debug("REST request to save SkillApplied : {}", skillAppliedDTO);
+        if (skillAppliedDTO.getId() != null) {
             throw new BadRequestAlertException("A new skillApplied cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        SkillApplied result = skillAppliedService.save(skillApplied);
+        SkillAppliedDTO result = skillAppliedService.save(skillAppliedDTO);
         return ResponseEntity.created(new URI("/api/skill-applieds/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -75,21 +75,21 @@ public class SkillAppliedResource {
     /**
      * {@code PUT  /skill-applieds} : Updates an existing skillApplied.
      *
-     * @param skillApplied the skillApplied to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated skillApplied,
-     * or with status {@code 400 (Bad Request)} if the skillApplied is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the skillApplied couldn't be updated.
+     * @param skillAppliedDTO the skillAppliedDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated skillAppliedDTO,
+     * or with status {@code 400 (Bad Request)} if the skillAppliedDTO is not valid,
+     * or with status {@code 500 (Internal Server Error)} if the skillAppliedDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/skill-applieds")
-    public ResponseEntity<SkillApplied> updateSkillApplied(@Valid @RequestBody SkillApplied skillApplied) throws URISyntaxException {
-        log.debug("REST request to update SkillApplied : {}", skillApplied);
-        if (skillApplied.getId() == null) {
+    public ResponseEntity<SkillAppliedDTO> updateSkillApplied(@Valid @RequestBody SkillAppliedDTO skillAppliedDTO) throws URISyntaxException {
+        log.debug("REST request to update SkillApplied : {}", skillAppliedDTO);
+        if (skillAppliedDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        SkillApplied result = skillAppliedService.save(skillApplied);
+        SkillAppliedDTO result = skillAppliedService.save(skillAppliedDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, skillApplied.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, skillAppliedDTO.getId().toString()))
             .body(result);
     }
 
@@ -103,9 +103,9 @@ public class SkillAppliedResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of skillApplieds in body.
      */
     @GetMapping("/skill-applieds")
-    public ResponseEntity<List<SkillApplied>> getAllSkillApplieds(SkillAppliedCriteria criteria, Pageable pageable) {
+    public ResponseEntity<List<SkillAppliedDTO>> getAllSkillApplieds(SkillAppliedCriteria criteria, Pageable pageable) {
         log.debug("REST request to get SkillApplieds by criteria: {}", criteria);
-        Page<SkillApplied> page = skillAppliedQueryService.findByCriteria(criteria, pageable);
+        Page<SkillAppliedDTO> page = skillAppliedQueryService.findByCriteria(criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -125,20 +125,20 @@ public class SkillAppliedResource {
     /**
      * {@code GET  /skill-applieds/:id} : get the "id" skillApplied.
      *
-     * @param id the id of the skillApplied to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the skillApplied, or with status {@code 404 (Not Found)}.
+     * @param id the id of the skillAppliedDTO to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the skillAppliedDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/skill-applieds/{id}")
-    public ResponseEntity<SkillApplied> getSkillApplied(@PathVariable Long id) {
+    public ResponseEntity<SkillAppliedDTO> getSkillApplied(@PathVariable Long id) {
         log.debug("REST request to get SkillApplied : {}", id);
-        Optional<SkillApplied> skillApplied = skillAppliedService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(skillApplied);
+        Optional<SkillAppliedDTO> skillAppliedDTO = skillAppliedService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(skillAppliedDTO);
     }
 
     /**
      * {@code DELETE  /skill-applieds/:id} : delete the "id" skillApplied.
      *
-     * @param id the id of the skillApplied to delete.
+     * @param id the id of the skillAppliedDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/skill-applieds/{id}")
@@ -157,9 +157,9 @@ public class SkillAppliedResource {
      * @return the result of the search.
      */
     @GetMapping("/_search/skill-applieds")
-    public ResponseEntity<List<SkillApplied>> searchSkillApplieds(@RequestParam String query, Pageable pageable) {
+    public ResponseEntity<List<SkillAppliedDTO>> searchSkillApplieds(@RequestParam String query, Pageable pageable) {
         log.debug("REST request to search for a page of SkillApplieds for query {}", query);
-        Page<SkillApplied> page = skillAppliedService.search(query, pageable);
+        Page<SkillAppliedDTO> page = skillAppliedService.search(query, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }

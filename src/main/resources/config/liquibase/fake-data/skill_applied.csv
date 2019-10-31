@@ -1,11 +1,1 @@
-id;user_id;used_at;description;skill_id;project_id
-1;36636;2019-10-18;Licensed Savings Account;1;1
-2;38246;2019-10-17;Mississippi Refined Rubber Chicken Table;2;2
-3;6505;2019-10-18;Usability South Dakota envisioneer;3;3
-4;1596;2019-10-18;Nakfa;4;4
-5;44015;2019-10-17;Investment Account;5;5
-6;83319;2019-10-18;Regional;6;6
-7;25877;2019-10-18;copy convergence;7;7
-8;20794;2019-10-17;Chair Facilitator;8;8
-9;77513;2019-10-18;e-enable Communications capacitor;9;9
-10;32654;2019-10-18;sky blue Tasty Plastic Pizza;10;10
+id;user_id;used_at;description;project_id

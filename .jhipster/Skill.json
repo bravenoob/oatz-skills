@@ -12,7 +12,7 @@
     "relationships": [],
     "changelogDate": "20191018120745",
     "entityTableName": "skill",
-    "dto": "no",
+    "dto": "mapstruct",
     "pagination": "pagination",
     "service": "serviceClass",
     "jpaMetamodelFiltering": true,

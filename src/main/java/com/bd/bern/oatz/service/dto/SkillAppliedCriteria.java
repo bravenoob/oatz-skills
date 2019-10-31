@@ -33,9 +33,9 @@ public class SkillAppliedCriteria implements Serializable, Criteria {
 
     private StringFilter description;
 
-    private LongFilter skillId;
-
     private LongFilter projectId;
+
+    private LongFilter skillId;
 
     public SkillAppliedCriteria(){
     }
@@ -45,8 +45,8 @@ public class SkillAppliedCriteria implements Serializable, Criteria {
         this.userId = other.userId == null ? null : other.userId.copy();
         this.usedAt = other.usedAt == null ? null : other.usedAt.copy();
         this.description = other.description == null ? null : other.description.copy();
-        this.skillId = other.skillId == null ? null : other.skillId.copy();
         this.projectId = other.projectId == null ? null : other.projectId.copy();
+        this.skillId = other.skillId == null ? null : other.skillId.copy();
     }
 
     @Override
@@ -86,20 +86,20 @@ public class SkillAppliedCriteria implements Serializable, Criteria {
         this.description = description;
     }
 
-    public LongFilter getSkillId() {
-        return skillId;
-    }
-
-    public void setSkillId(LongFilter skillId) {
-        this.skillId = skillId;
-    }
-
     public LongFilter getProjectId() {
         return projectId;
     }
 
     public void setProjectId(LongFilter projectId) {
         this.projectId = projectId;
+    }
+
+    public LongFilter getSkillId() {
+        return skillId;
+    }
+
+    public void setSkillId(LongFilter skillId) {
+        this.skillId = skillId;
     }
 
 
@@ -117,8 +117,8 @@ public class SkillAppliedCriteria implements Serializable, Criteria {
             Objects.equals(userId, that.userId) &&
             Objects.equals(usedAt, that.usedAt) &&
             Objects.equals(description, that.description) &&
-            Objects.equals(skillId, that.skillId) &&
-            Objects.equals(projectId, that.projectId);
+            Objects.equals(projectId, that.projectId) &&
+            Objects.equals(skillId, that.skillId);
     }
 
     @Override
@@ -128,8 +128,8 @@ public class SkillAppliedCriteria implements Serializable, Criteria {
         userId,
         usedAt,
         description,
-        skillId,
-        projectId
+        projectId,
+        skillId
         );
     }
 
@@ -140,8 +140,8 @@ public class SkillAppliedCriteria implements Serializable, Criteria {
                 (userId != null ? "userId=" + userId + ", " : "") +
                 (usedAt != null ? "usedAt=" + usedAt + ", " : "") +
                 (description != null ? "description=" + description + ", " : "") +
-                (skillId != null ? "skillId=" + skillId + ", " : "") +
                 (projectId != null ? "projectId=" + projectId + ", " : "") +
+                (skillId != null ? "skillId=" + skillId + ", " : "") +
             "}";
     }
 

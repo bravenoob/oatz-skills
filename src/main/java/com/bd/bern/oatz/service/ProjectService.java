@@ -3,8 +3,11 @@ package com.bd.bern.oatz.service;
 import com.bd.bern.oatz.domain.Project;
 import com.bd.bern.oatz.repository.ProjectRepository;
 import com.bd.bern.oatz.repository.search.ProjectSearchRepository;
+import com.bd.bern.oatz.service.dto.ProjectDTO;
+import com.bd.bern.oatz.service.mapper.ProjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -12,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
+import static org.elasticsearch.index.query.QueryBuilders.*;
 
 /**
  * Service Implementation for managing {@link Project}.
@@ -25,23 +28,28 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
 
+    private final ProjectMapper projectMapper;
+
     private final ProjectSearchRepository projectSearchRepository;
 
-    public ProjectService(ProjectRepository projectRepository, ProjectSearchRepository projectSearchRepository) {
+    public ProjectService(ProjectRepository projectRepository, ProjectMapper projectMapper, ProjectSearchRepository projectSearchRepository) {
         this.projectRepository = projectRepository;
+        this.projectMapper = projectMapper;
         this.projectSearchRepository = projectSearchRepository;
     }
 
     /**
      * Save a project.
      *
-     * @param project the entity to save.
+     * @param projectDTO the entity to save.
      * @return the persisted entity.
      */
-    public Project save(Project project) {
-        log.debug("Request to save Project : {}", project);
-        Project result = projectRepository.save(project);
-        projectSearchRepository.save(result);
+    public ProjectDTO save(ProjectDTO projectDTO) {
+        log.debug("Request to save Project : {}", projectDTO);
+        Project project = projectMapper.toEntity(projectDTO);
+        project = projectRepository.save(project);
+        ProjectDTO result = projectMapper.toDto(project);
+        projectSearchRepository.save(project);
         return result;
     }
 
@@ -52,15 +60,10 @@ public class ProjectService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<Project> findAll(Pageable pageable) {
+    public Page<ProjectDTO> findAll(Pageable pageable) {
         log.debug("Request to get all Projects");
-        return projectRepository.findAll(pageable);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<Project> findAllByUser(Long userId, Pageable pageable) {
-        log.debug("Request to get all Projects");
-        return projectRepository.findAllByUserId(userId, pageable);
+        return projectRepository.findAll(pageable)
+            .map(projectMapper::toDto);
     }
 
 
@@ -71,9 +74,10 @@ public class ProjectService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<Project> findOne(Long id) {
+    public Optional<ProjectDTO> findOne(Long id) {
         log.debug("Request to get Project : {}", id);
-        return projectRepository.findById(id);
+        return projectRepository.findById(id)
+            .map(projectMapper::toDto);
     }
 
     /**
@@ -90,13 +94,14 @@ public class ProjectService {
     /**
      * Search for the project corresponding to the query.
      *
-     * @param query    the query of the search.
+     * @param query the query of the search.
      * @param pageable the pagination information.
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<Project> search(String query, Pageable pageable) {
+    public Page<ProjectDTO> search(String query, Pageable pageable) {
         log.debug("Request to search for a page of Projects for query {}", query);
-        return projectSearchRepository.search(queryStringQuery(query), pageable);
+        return projectSearchRepository.search(queryStringQuery(query), pageable)
+            .map(projectMapper::toDto);
     }
 }

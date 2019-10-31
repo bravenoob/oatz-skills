@@ -3,6 +3,8 @@ package com.bd.bern.oatz.service;
 import com.bd.bern.oatz.domain.Skill;
 import com.bd.bern.oatz.repository.SkillRepository;
 import com.bd.bern.oatz.repository.search.SkillSearchRepository;
+import com.bd.bern.oatz.service.dto.SkillDTO;
+import com.bd.bern.oatz.service.mapper.SkillMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,23 +28,28 @@ public class SkillService {
 
     private final SkillRepository skillRepository;
 
+    private final SkillMapper skillMapper;
+
     private final SkillSearchRepository skillSearchRepository;
 
-    public SkillService(SkillRepository skillRepository, SkillSearchRepository skillSearchRepository) {
+    public SkillService(SkillRepository skillRepository, SkillMapper skillMapper, SkillSearchRepository skillSearchRepository) {
         this.skillRepository = skillRepository;
+        this.skillMapper = skillMapper;
         this.skillSearchRepository = skillSearchRepository;
     }
 
     /**
      * Save a skill.
      *
-     * @param skill the entity to save.
+     * @param skillDTO the entity to save.
      * @return the persisted entity.
      */
-    public Skill save(Skill skill) {
-        log.debug("Request to save Skill : {}", skill);
-        Skill result = skillRepository.save(skill);
-        skillSearchRepository.save(result);
+    public SkillDTO save(SkillDTO skillDTO) {
+        log.debug("Request to save Skill : {}", skillDTO);
+        Skill skill = skillMapper.toEntity(skillDTO);
+        skill = skillRepository.save(skill);
+        SkillDTO result = skillMapper.toDto(skill);
+        skillSearchRepository.save(skill);
         return result;
     }
 
@@ -53,9 +60,10 @@ public class SkillService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<Skill> findAll(Pageable pageable) {
+    public Page<SkillDTO> findAll(Pageable pageable) {
         log.debug("Request to get all Skills");
-        return skillRepository.findAll(pageable);
+        return skillRepository.findAll(pageable)
+            .map(skillMapper::toDto);
     }
 
 
@@ -66,9 +74,10 @@ public class SkillService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<Skill> findOne(Long id) {
+    public Optional<SkillDTO> findOne(Long id) {
         log.debug("Request to get Skill : {}", id);
-        return skillRepository.findById(id);
+        return skillRepository.findById(id)
+            .map(skillMapper::toDto);
     }
 
     /**
@@ -90,7 +99,9 @@ public class SkillService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<Skill> search(String query, Pageable pageable) {
+    public Page<SkillDTO> search(String query, Pageable pageable) {
         log.debug("Request to search for a page of Skills for query {}", query);
-        return skillSearchRepository.search(queryStringQuery(query), pageable);    }
+        return skillSearchRepository.search(queryStringQuery(query), pageable)
+            .map(skillMapper::toDto);
+    }
 }

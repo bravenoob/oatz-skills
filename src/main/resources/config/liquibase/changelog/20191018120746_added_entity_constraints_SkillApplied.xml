@@ -8,17 +8,23 @@
     -->
     <changeSet id="20191018120746-2" author="jhipster">
         
-        <addForeignKeyConstraint baseColumnNames="skill_id"
-                                 baseTableName="skill_applied"
-                                 constraintName="fk_skill_applied_skill_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="skill"/>
-
         <addForeignKeyConstraint baseColumnNames="project_id"
                                  baseTableName="skill_applied"
                                  constraintName="fk_skill_applied_project_id"
                                  referencedColumnNames="id"
                                  referencedTableName="project"/>
 
+        <addForeignKeyConstraint baseColumnNames="skill_applied_id"
+                                 baseTableName="skill_applied_skill"
+                                 constraintName="fk_skill_applied_skill_skill_applied_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="skill_applied"/>
+
+        <addForeignKeyConstraint baseColumnNames="skill_id"
+                                 baseTableName="skill_applied_skill"
+                                 constraintName="fk_skill_applied_skill_skill_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="skill"/>
+        
     </changeSet>
 </databaseChangeLog>

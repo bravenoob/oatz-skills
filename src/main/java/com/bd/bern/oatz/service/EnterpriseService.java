@@ -3,6 +3,8 @@ package com.bd.bern.oatz.service;
 import com.bd.bern.oatz.domain.Enterprise;
 import com.bd.bern.oatz.repository.EnterpriseRepository;
 import com.bd.bern.oatz.repository.search.EnterpriseSearchRepository;
+import com.bd.bern.oatz.service.dto.EnterpriseDTO;
+import com.bd.bern.oatz.service.mapper.EnterpriseMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,23 +28,28 @@ public class EnterpriseService {
 
     private final EnterpriseRepository enterpriseRepository;
 
+    private final EnterpriseMapper enterpriseMapper;
+
     private final EnterpriseSearchRepository enterpriseSearchRepository;
 
-    public EnterpriseService(EnterpriseRepository enterpriseRepository, EnterpriseSearchRepository enterpriseSearchRepository) {
+    public EnterpriseService(EnterpriseRepository enterpriseRepository, EnterpriseMapper enterpriseMapper, EnterpriseSearchRepository enterpriseSearchRepository) {
         this.enterpriseRepository = enterpriseRepository;
+        this.enterpriseMapper = enterpriseMapper;
         this.enterpriseSearchRepository = enterpriseSearchRepository;
     }
 
     /**
      * Save a enterprise.
      *
-     * @param enterprise the entity to save.
+     * @param enterpriseDTO the entity to save.
      * @return the persisted entity.
      */
-    public Enterprise save(Enterprise enterprise) {
-        log.debug("Request to save Enterprise : {}", enterprise);
-        Enterprise result = enterpriseRepository.save(enterprise);
-        enterpriseSearchRepository.save(result);
+    public EnterpriseDTO save(EnterpriseDTO enterpriseDTO) {
+        log.debug("Request to save Enterprise : {}", enterpriseDTO);
+        Enterprise enterprise = enterpriseMapper.toEntity(enterpriseDTO);
+        enterprise = enterpriseRepository.save(enterprise);
+        EnterpriseDTO result = enterpriseMapper.toDto(enterprise);
+        enterpriseSearchRepository.save(enterprise);
         return result;
     }
 
@@ -53,9 +60,10 @@ public class EnterpriseService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<Enterprise> findAll(Pageable pageable) {
+    public Page<EnterpriseDTO> findAll(Pageable pageable) {
         log.debug("Request to get all Enterprises");
-        return enterpriseRepository.findAll(pageable);
+        return enterpriseRepository.findAll(pageable)
+            .map(enterpriseMapper::toDto);
     }
 
 
@@ -66,9 +74,10 @@ public class EnterpriseService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<Enterprise> findOne(Long id) {
+    public Optional<EnterpriseDTO> findOne(Long id) {
         log.debug("Request to get Enterprise : {}", id);
-        return enterpriseRepository.findById(id);
+        return enterpriseRepository.findById(id)
+            .map(enterpriseMapper::toDto);
     }
 
     /**
@@ -90,7 +99,9 @@ public class EnterpriseService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<Enterprise> search(String query, Pageable pageable) {
+    public Page<EnterpriseDTO> search(String query, Pageable pageable) {
         log.debug("Request to search for a page of Enterprises for query {}", query);
-        return enterpriseSearchRepository.search(queryStringQuery(query), pageable);    }
+        return enterpriseSearchRepository.search(queryStringQuery(query), pageable)
+            .map(enterpriseMapper::toDto);
+    }
 }

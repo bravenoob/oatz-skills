@@ -1,8 +1,8 @@
 package com.bd.bern.oatz.web.rest;
 
-import com.bd.bern.oatz.domain.Project;
 import com.bd.bern.oatz.service.ProjectService;
 import com.bd.bern.oatz.web.rest.errors.BadRequestAlertException;
+import com.bd.bern.oatz.service.dto.ProjectDTO;
 import com.bd.bern.oatz.service.dto.ProjectCriteria;
 import com.bd.bern.oatz.service.ProjectQueryService;
 
@@ -56,17 +56,17 @@ public class ProjectResource {
     /**
      * {@code POST  /projects} : Create a new project.
      *
-     * @param project the project to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new project, or with status {@code 400 (Bad Request)} if the project has already an ID.
+     * @param projectDTO the projectDTO to create.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new projectDTO, or with status {@code 400 (Bad Request)} if the project has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/projects")
-    public ResponseEntity<Project> createProject(@Valid @RequestBody Project project) throws URISyntaxException {
-        log.debug("REST request to save Project : {}", project);
-        if (project.getId() != null) {
+    public ResponseEntity<ProjectDTO> createProject(@Valid @RequestBody ProjectDTO projectDTO) throws URISyntaxException {
+        log.debug("REST request to save Project : {}", projectDTO);
+        if (projectDTO.getId() != null) {
             throw new BadRequestAlertException("A new project cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Project result = projectService.save(project);
+        ProjectDTO result = projectService.save(projectDTO);
         return ResponseEntity.created(new URI("/api/projects/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -75,35 +75,37 @@ public class ProjectResource {
     /**
      * {@code PUT  /projects} : Updates an existing project.
      *
-     * @param project the project to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated project,
-     * or with status {@code 400 (Bad Request)} if the project is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the project couldn't be updated.
+     * @param projectDTO the projectDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated projectDTO,
+     * or with status {@code 400 (Bad Request)} if the projectDTO is not valid,
+     * or with status {@code 500 (Internal Server Error)} if the projectDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/projects")
-    public ResponseEntity<Project> updateProject(@Valid @RequestBody Project project) throws URISyntaxException {
-        log.debug("REST request to update Project : {}", project);
-        if (project.getId() == null) {
+    public ResponseEntity<ProjectDTO> updateProject(@Valid @RequestBody ProjectDTO projectDTO) throws URISyntaxException {
+        log.debug("REST request to update Project : {}", projectDTO);
+        if (projectDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        Project result = projectService.save(project);
+        ProjectDTO result = projectService.save(projectDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, project.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, projectDTO.getId().toString()))
             .body(result);
     }
 
     /**
      * {@code GET  /projects} : get all the projects.
      *
+
      * @param pageable the pagination information.
+
      * @param criteria the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of projects in body.
      */
     @GetMapping("/projects")
-    public ResponseEntity<List<Project>> getAllProjects(ProjectCriteria criteria, Pageable pageable) {
+    public ResponseEntity<List<ProjectDTO>> getAllProjects(ProjectCriteria criteria, Pageable pageable) {
         log.debug("REST request to get Projects by criteria: {}", criteria);
-        Page<Project> page = projectQueryService.findByCriteria(criteria, pageable);
+        Page<ProjectDTO> page = projectQueryService.findByCriteria(criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -123,20 +125,20 @@ public class ProjectResource {
     /**
      * {@code GET  /projects/:id} : get the "id" project.
      *
-     * @param id the id of the project to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the project, or with status {@code 404 (Not Found)}.
+     * @param id the id of the projectDTO to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the projectDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/projects/{id}")
-    public ResponseEntity<Project> getProject(@PathVariable Long id) {
+    public ResponseEntity<ProjectDTO> getProject(@PathVariable Long id) {
         log.debug("REST request to get Project : {}", id);
-        Optional<Project> project = projectService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(project);
+        Optional<ProjectDTO> projectDTO = projectService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(projectDTO);
     }
 
     /**
      * {@code DELETE  /projects/:id} : delete the "id" project.
      *
-     * @param id the id of the project to delete.
+     * @param id the id of the projectDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/projects/{id}")
@@ -155,9 +157,9 @@ public class ProjectResource {
      * @return the result of the search.
      */
     @GetMapping("/_search/projects")
-    public ResponseEntity<List<Project>> searchProjects(@RequestParam String query, Pageable pageable) {
+    public ResponseEntity<List<ProjectDTO>> searchProjects(@RequestParam String query, Pageable pageable) {
         log.debug("REST request to search for a page of Projects for query {}", query);
-        Page<Project> page = projectService.search(query, pageable);
+        Page<ProjectDTO> page = projectService.search(query, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }

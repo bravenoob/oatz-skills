@@ -19,12 +19,14 @@ import com.bd.bern.oatz.domain.*; // for static metamodels
 import com.bd.bern.oatz.repository.SkillRepository;
 import com.bd.bern.oatz.repository.search.SkillSearchRepository;
 import com.bd.bern.oatz.service.dto.SkillCriteria;
+import com.bd.bern.oatz.service.dto.SkillDTO;
+import com.bd.bern.oatz.service.mapper.SkillMapper;
 
 /**
  * Service for executing complex queries for {@link Skill} entities in the database.
  * The main input is a {@link SkillCriteria} which gets converted to {@link Specification},
  * in a way that all the filters must apply.
- * It returns a {@link List} of {@link Skill} or a {@link Page} of {@link Skill} which fulfills the criteria.
+ * It returns a {@link List} of {@link SkillDTO} or a {@link Page} of {@link SkillDTO} which fulfills the criteria.
  */
 @Service
 @Transactional(readOnly = true)
@@ -34,36 +36,40 @@ public class SkillQueryService extends QueryService<Skill> {
 
     private final SkillRepository skillRepository;
 
+    private final SkillMapper skillMapper;
+
     private final SkillSearchRepository skillSearchRepository;
 
-    public SkillQueryService(SkillRepository skillRepository, SkillSearchRepository skillSearchRepository) {
+    public SkillQueryService(SkillRepository skillRepository, SkillMapper skillMapper, SkillSearchRepository skillSearchRepository) {
         this.skillRepository = skillRepository;
+        this.skillMapper = skillMapper;
         this.skillSearchRepository = skillSearchRepository;
     }
 
     /**
-     * Return a {@link List} of {@link Skill} which matches the criteria from the database.
+     * Return a {@link List} of {@link SkillDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public List<Skill> findByCriteria(SkillCriteria criteria) {
+    public List<SkillDTO> findByCriteria(SkillCriteria criteria) {
         log.debug("find by criteria : {}", criteria);
         final Specification<Skill> specification = createSpecification(criteria);
-        return skillRepository.findAll(specification);
+        return skillMapper.toDto(skillRepository.findAll(specification));
     }
 
     /**
-     * Return a {@link Page} of {@link Skill} which matches the criteria from the database.
+     * Return a {@link Page} of {@link SkillDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public Page<Skill> findByCriteria(SkillCriteria criteria, Pageable page) {
+    public Page<SkillDTO> findByCriteria(SkillCriteria criteria, Pageable page) {
         log.debug("find by criteria : {}, page: {}", criteria, page);
         final Specification<Skill> specification = createSpecification(criteria);
-        return skillRepository.findAll(specification, page);
+        return skillRepository.findAll(specification, page)
+            .map(skillMapper::toDto);
     }
 
     /**

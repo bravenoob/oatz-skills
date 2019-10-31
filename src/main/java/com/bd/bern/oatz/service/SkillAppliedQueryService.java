@@ -19,12 +19,14 @@ import com.bd.bern.oatz.domain.*; // for static metamodels
 import com.bd.bern.oatz.repository.SkillAppliedRepository;
 import com.bd.bern.oatz.repository.search.SkillAppliedSearchRepository;
 import com.bd.bern.oatz.service.dto.SkillAppliedCriteria;
+import com.bd.bern.oatz.service.dto.SkillAppliedDTO;
+import com.bd.bern.oatz.service.mapper.SkillAppliedMapper;
 
 /**
  * Service for executing complex queries for {@link SkillApplied} entities in the database.
  * The main input is a {@link SkillAppliedCriteria} which gets converted to {@link Specification},
  * in a way that all the filters must apply.
- * It returns a {@link List} of {@link SkillApplied} or a {@link Page} of {@link SkillApplied} which fulfills the criteria.
+ * It returns a {@link List} of {@link SkillAppliedDTO} or a {@link Page} of {@link SkillAppliedDTO} which fulfills the criteria.
  */
 @Service
 @Transactional(readOnly = true)
@@ -34,36 +36,40 @@ public class SkillAppliedQueryService extends QueryService<SkillApplied> {
 
     private final SkillAppliedRepository skillAppliedRepository;
 
+    private final SkillAppliedMapper skillAppliedMapper;
+
     private final SkillAppliedSearchRepository skillAppliedSearchRepository;
 
-    public SkillAppliedQueryService(SkillAppliedRepository skillAppliedRepository, SkillAppliedSearchRepository skillAppliedSearchRepository) {
+    public SkillAppliedQueryService(SkillAppliedRepository skillAppliedRepository, SkillAppliedMapper skillAppliedMapper, SkillAppliedSearchRepository skillAppliedSearchRepository) {
         this.skillAppliedRepository = skillAppliedRepository;
+        this.skillAppliedMapper = skillAppliedMapper;
         this.skillAppliedSearchRepository = skillAppliedSearchRepository;
     }
 
     /**
-     * Return a {@link List} of {@link SkillApplied} which matches the criteria from the database.
+     * Return a {@link List} of {@link SkillAppliedDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public List<SkillApplied> findByCriteria(SkillAppliedCriteria criteria) {
+    public List<SkillAppliedDTO> findByCriteria(SkillAppliedCriteria criteria) {
         log.debug("find by criteria : {}", criteria);
         final Specification<SkillApplied> specification = createSpecification(criteria);
-        return skillAppliedRepository.findAll(specification);
+        return skillAppliedMapper.toDto(skillAppliedRepository.findAll(specification));
     }
 
     /**
-     * Return a {@link Page} of {@link SkillApplied} which matches the criteria from the database.
+     * Return a {@link Page} of {@link SkillAppliedDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public Page<SkillApplied> findByCriteria(SkillAppliedCriteria criteria, Pageable page) {
+    public Page<SkillAppliedDTO> findByCriteria(SkillAppliedCriteria criteria, Pageable page) {
         log.debug("find by criteria : {}, page: {}", criteria, page);
         final Specification<SkillApplied> specification = createSpecification(criteria);
-        return skillAppliedRepository.findAll(specification, page);
+        return skillAppliedRepository.findAll(specification, page)
+            .map(skillAppliedMapper::toDto);
     }
 
     /**
@@ -98,13 +104,13 @@ public class SkillAppliedQueryService extends QueryService<SkillApplied> {
             if (criteria.getDescription() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getDescription(), SkillApplied_.description));
             }
-            if (criteria.getSkillId() != null) {
-                specification = specification.and(buildSpecification(criteria.getSkillId(),
-                    root -> root.join(SkillApplied_.skill, JoinType.LEFT).get(Skill_.id)));
-            }
             if (criteria.getProjectId() != null) {
                 specification = specification.and(buildSpecification(criteria.getProjectId(),
                     root -> root.join(SkillApplied_.project, JoinType.LEFT).get(Project_.id)));
+            }
+            if (criteria.getSkillId() != null) {
+                specification = specification.and(buildSpecification(criteria.getSkillId(),
+                    root -> root.join(SkillApplied_.skills, JoinType.LEFT).get(Skill_.id)));
             }
         }
         return specification;

@@ -20,24 +20,27 @@
     "relationships": [
         {
             "relationshipType": "many-to-one",
-            "otherEntityName": "skill",
-            "otherEntityRelationshipName": "appliedSkills",
-            "relationshipValidateRules": "required",
-            "relationshipName": "skill",
-            "otherEntityField": "id"
-        },
-        {
-            "relationshipType": "many-to-one",
             "otherEntityName": "project",
             "otherEntityRelationshipName": "appliedSkills",
             "relationshipValidateRules": "required",
             "relationshipName": "project",
             "otherEntityField": "id"
+        },
+        {
+            "relationshipName": "skill",
+            "otherEntityName": "skill",
+            "relationshipType": "many-to-many",
+            "relationshipValidateRules": [
+                "required"
+            ],
+            "otherEntityField": "id",
+            "ownerSide": true,
+            "otherEntityRelationshipName": "skillApplied"
         }
     ],
     "changelogDate": "20191018120746",
     "entityTableName": "skill_applied",
-    "dto": "yes",
+    "dto": "mapstruct",
     "pagination": "infinite-scroll",
     "service": "serviceClass",
     "jpaMetamodelFiltering": true,
@@ -45,5 +48,7 @@
     "readOnly": false,
     "clientRootFolder": "oatzSkill",
     "applications": "*",
-    "microserviceName": "oatzSkill"
+    "microserviceName": "oatzSkill",
+    "searchEngine": "elasticsearch",
+    "databaseType": "sql"
 }

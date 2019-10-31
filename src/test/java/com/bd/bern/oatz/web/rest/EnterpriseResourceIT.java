@@ -6,6 +6,8 @@ import com.bd.bern.oatz.domain.Project;
 import com.bd.bern.oatz.repository.EnterpriseRepository;
 import com.bd.bern.oatz.repository.search.EnterpriseSearchRepository;
 import com.bd.bern.oatz.service.EnterpriseService;
+import com.bd.bern.oatz.service.dto.EnterpriseDTO;
+import com.bd.bern.oatz.service.mapper.EnterpriseMapper;
 import com.bd.bern.oatz.web.rest.errors.ExceptionTranslator;
 import com.bd.bern.oatz.service.dto.EnterpriseCriteria;
 import com.bd.bern.oatz.service.EnterpriseQueryService;
@@ -48,6 +50,9 @@ public class EnterpriseResourceIT {
 
     @Autowired
     private EnterpriseRepository enterpriseRepository;
+
+    @Autowired
+    private EnterpriseMapper enterpriseMapper;
 
     @Autowired
     private EnterpriseService enterpriseService;
@@ -128,9 +133,10 @@ public class EnterpriseResourceIT {
         int databaseSizeBeforeCreate = enterpriseRepository.findAll().size();
 
         // Create the Enterprise
+        EnterpriseDTO enterpriseDTO = enterpriseMapper.toDto(enterprise);
         restEnterpriseMockMvc.perform(post("/api/enterprises")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(enterprise)))
+            .content(TestUtil.convertObjectToJsonBytes(enterpriseDTO)))
             .andExpect(status().isCreated());
 
         // Validate the Enterprise in the database
@@ -150,11 +156,12 @@ public class EnterpriseResourceIT {
 
         // Create the Enterprise with an existing ID
         enterprise.setId(1L);
+        EnterpriseDTO enterpriseDTO = enterpriseMapper.toDto(enterprise);
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restEnterpriseMockMvc.perform(post("/api/enterprises")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(enterprise)))
+            .content(TestUtil.convertObjectToJsonBytes(enterpriseDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Enterprise in the database
@@ -174,10 +181,11 @@ public class EnterpriseResourceIT {
         enterprise.setTitle(null);
 
         // Create the Enterprise, which fails.
+        EnterpriseDTO enterpriseDTO = enterpriseMapper.toDto(enterprise);
 
         restEnterpriseMockMvc.perform(post("/api/enterprises")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(enterprise)))
+            .content(TestUtil.convertObjectToJsonBytes(enterpriseDTO)))
             .andExpect(status().isBadRequest());
 
         List<Enterprise> enterpriseList = enterpriseRepository.findAll();
@@ -356,9 +364,7 @@ public class EnterpriseResourceIT {
     @Transactional
     public void updateEnterprise() throws Exception {
         // Initialize the database
-        enterpriseService.save(enterprise);
-        // As the test used the service layer, reset the Elasticsearch mock repository
-        reset(mockEnterpriseSearchRepository);
+        enterpriseRepository.saveAndFlush(enterprise);
 
         int databaseSizeBeforeUpdate = enterpriseRepository.findAll().size();
 
@@ -368,10 +374,11 @@ public class EnterpriseResourceIT {
         em.detach(updatedEnterprise);
         updatedEnterprise
             .title(UPDATED_TITLE);
+        EnterpriseDTO enterpriseDTO = enterpriseMapper.toDto(updatedEnterprise);
 
         restEnterpriseMockMvc.perform(put("/api/enterprises")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(updatedEnterprise)))
+            .content(TestUtil.convertObjectToJsonBytes(enterpriseDTO)))
             .andExpect(status().isOk());
 
         // Validate the Enterprise in the database
@@ -390,11 +397,12 @@ public class EnterpriseResourceIT {
         int databaseSizeBeforeUpdate = enterpriseRepository.findAll().size();
 
         // Create the Enterprise
+        EnterpriseDTO enterpriseDTO = enterpriseMapper.toDto(enterprise);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restEnterpriseMockMvc.perform(put("/api/enterprises")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(enterprise)))
+            .content(TestUtil.convertObjectToJsonBytes(enterpriseDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Enterprise in the database
@@ -409,7 +417,7 @@ public class EnterpriseResourceIT {
     @Transactional
     public void deleteEnterprise() throws Exception {
         // Initialize the database
-        enterpriseService.save(enterprise);
+        enterpriseRepository.saveAndFlush(enterprise);
 
         int databaseSizeBeforeDelete = enterpriseRepository.findAll().size();
 
@@ -430,7 +438,7 @@ public class EnterpriseResourceIT {
     @Transactional
     public void searchEnterprise() throws Exception {
         // Initialize the database
-        enterpriseService.save(enterprise);
+        enterpriseRepository.saveAndFlush(enterprise);
         when(mockEnterpriseSearchRepository.search(queryStringQuery("id:" + enterprise.getId()), PageRequest.of(0, 20)))
             .thenReturn(new PageImpl<>(Collections.singletonList(enterprise), PageRequest.of(0, 1), 1));
         // Search the enterprise
@@ -454,5 +462,28 @@ public class EnterpriseResourceIT {
         assertThat(enterprise1).isNotEqualTo(enterprise2);
         enterprise1.setId(null);
         assertThat(enterprise1).isNotEqualTo(enterprise2);
+    }
+
+    @Test
+    @Transactional
+    public void dtoEqualsVerifier() throws Exception {
+        TestUtil.equalsVerifier(EnterpriseDTO.class);
+        EnterpriseDTO enterpriseDTO1 = new EnterpriseDTO();
+        enterpriseDTO1.setId(1L);
+        EnterpriseDTO enterpriseDTO2 = new EnterpriseDTO();
+        assertThat(enterpriseDTO1).isNotEqualTo(enterpriseDTO2);
+        enterpriseDTO2.setId(enterpriseDTO1.getId());
+        assertThat(enterpriseDTO1).isEqualTo(enterpriseDTO2);
+        enterpriseDTO2.setId(2L);
+        assertThat(enterpriseDTO1).isNotEqualTo(enterpriseDTO2);
+        enterpriseDTO1.setId(null);
+        assertThat(enterpriseDTO1).isNotEqualTo(enterpriseDTO2);
+    }
+
+    @Test
+    @Transactional
+    public void testEntityFromId() {
+        assertThat(enterpriseMapper.fromId(42L).getId()).isEqualTo(42);
+        assertThat(enterpriseMapper.fromId(null)).isNull();
     }
 }

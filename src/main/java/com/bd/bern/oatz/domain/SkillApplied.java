@@ -1,14 +1,16 @@
 package com.bd.bern.oatz.domain;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
-
-import org.springframework.data.elasticsearch.annotations.FieldType;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A SkillApplied.
@@ -40,12 +42,15 @@ public class SkillApplied implements Serializable {
     @ManyToOne(optional = false)
     @NotNull
     @JsonIgnoreProperties("appliedSkills")
-    private Skill skill;
-
-    @ManyToOne(optional = false)
-    @NotNull
-    @JsonIgnoreProperties("appliedSkills")
     private Project project;
+
+    @ManyToMany
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @NotNull
+    @JoinTable(name = "skill_applied_skill",
+        joinColumns = @JoinColumn(name = "skill_applied_id", referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "skill_id", referencedColumnName = "id"))
+    private Set<Skill> skills = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -95,19 +100,6 @@ public class SkillApplied implements Serializable {
         this.description = description;
     }
 
-    public Skill getSkill() {
-        return skill;
-    }
-
-    public SkillApplied skill(Skill skill) {
-        this.skill = skill;
-        return this;
-    }
-
-    public void setSkill(Skill skill) {
-        this.skill = skill;
-    }
-
     public Project getProject() {
         return project;
     }
@@ -119,6 +111,29 @@ public class SkillApplied implements Serializable {
 
     public void setProject(Project project) {
         this.project = project;
+    }
+
+    public Set<Skill> getSkills() {
+        return skills;
+    }
+
+    public SkillApplied skills(Set<Skill> skills) {
+        this.skills = skills;
+        return this;
+    }
+
+    public SkillApplied addSkill(Skill skill) {
+        this.skills.add(skill);
+        return this;
+    }
+
+    public SkillApplied removeSkill(Skill skill) {
+        this.skills.remove(skill);
+        return this;
+    }
+
+    public void setSkills(Set<Skill> skills) {
+        this.skills = skills;
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 

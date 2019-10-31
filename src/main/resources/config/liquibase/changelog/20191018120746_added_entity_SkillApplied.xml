@@ -24,9 +24,6 @@
             <column name="description" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
-            <column name="skill_id" type="bigint">
-                <constraints nullable="false" />
-            </column>
             <column name="project_id" type="bigint">
                 <constraints nullable="false" />
             </column>
@@ -36,6 +33,17 @@
 
     <changeSet id="20191018120746-1-relations" author="jhipster">
 
+        <createTable tableName="skill_applied_skill">
+            <column name="skill_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="skill_applied_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="skill_applied_id, skill_id" tableName="skill_applied_skill"/>
+        
     </changeSet>
     <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here, do not remove-->
 
@@ -56,7 +64,6 @@
             <column name="user_id" type="numeric"/>
             <column name="used_at" type="date"/>
             <column name="description" type="string"/>
-            <column name="skill_id" type="numeric"/>
             <column name="project_id" type="numeric"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here, do not remove-->
         </loadData>

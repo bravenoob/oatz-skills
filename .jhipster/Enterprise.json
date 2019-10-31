@@ -19,7 +19,7 @@
     ],
     "changelogDate": "20191018120747",
     "entityTableName": "enterprise",
-    "dto": "no",
+    "dto": "mapstruct",
     "pagination": "pagination",
     "service": "serviceClass",
     "jpaMetamodelFiltering": true,

@@ -19,12 +19,14 @@ import com.bd.bern.oatz.domain.*; // for static metamodels
 import com.bd.bern.oatz.repository.ProjectRepository;
 import com.bd.bern.oatz.repository.search.ProjectSearchRepository;
 import com.bd.bern.oatz.service.dto.ProjectCriteria;
+import com.bd.bern.oatz.service.dto.ProjectDTO;
+import com.bd.bern.oatz.service.mapper.ProjectMapper;
 
 /**
  * Service for executing complex queries for {@link Project} entities in the database.
  * The main input is a {@link ProjectCriteria} which gets converted to {@link Specification},
  * in a way that all the filters must apply.
- * It returns a {@link List} of {@link Project} or a {@link Page} of {@link Project} which fulfills the criteria.
+ * It returns a {@link List} of {@link ProjectDTO} or a {@link Page} of {@link ProjectDTO} which fulfills the criteria.
  */
 @Service
 @Transactional(readOnly = true)
@@ -34,36 +36,40 @@ public class ProjectQueryService extends QueryService<Project> {
 
     private final ProjectRepository projectRepository;
 
+    private final ProjectMapper projectMapper;
+
     private final ProjectSearchRepository projectSearchRepository;
 
-    public ProjectQueryService(ProjectRepository projectRepository, ProjectSearchRepository projectSearchRepository) {
+    public ProjectQueryService(ProjectRepository projectRepository, ProjectMapper projectMapper, ProjectSearchRepository projectSearchRepository) {
         this.projectRepository = projectRepository;
+        this.projectMapper = projectMapper;
         this.projectSearchRepository = projectSearchRepository;
     }
 
     /**
-     * Return a {@link List} of {@link Project} which matches the criteria from the database.
+     * Return a {@link List} of {@link ProjectDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public List<Project> findByCriteria(ProjectCriteria criteria) {
+    public List<ProjectDTO> findByCriteria(ProjectCriteria criteria) {
         log.debug("find by criteria : {}", criteria);
         final Specification<Project> specification = createSpecification(criteria);
-        return projectRepository.findAll(specification);
+        return projectMapper.toDto(projectRepository.findAll(specification));
     }
 
     /**
-     * Return a {@link Page} of {@link Project} which matches the criteria from the database.
+     * Return a {@link Page} of {@link ProjectDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public Page<Project> findByCriteria(ProjectCriteria criteria, Pageable page) {
+    public Page<ProjectDTO> findByCriteria(ProjectCriteria criteria, Pageable page) {
         log.debug("find by criteria : {}, page: {}", criteria, page);
         final Specification<Project> specification = createSpecification(criteria);
-        return projectRepository.findAll(specification, page);
+        return projectRepository.findAll(specification, page)
+            .map(projectMapper::toDto);
     }
 
     /**

@@ -1,18 +1,19 @@
 package com.bd.bern.oatz.web.rest;
 
 import com.bd.bern.oatz.OatzSkillApp;
-import com.bd.bern.oatz.domain.SkillApplied;
-import com.bd.bern.oatz.domain.Skill;
 import com.bd.bern.oatz.domain.Project;
+import com.bd.bern.oatz.domain.Skill;
+import com.bd.bern.oatz.domain.SkillApplied;
 import com.bd.bern.oatz.repository.SkillAppliedRepository;
 import com.bd.bern.oatz.repository.search.SkillAppliedSearchRepository;
-import com.bd.bern.oatz.service.SkillAppliedService;
-import com.bd.bern.oatz.web.rest.errors.ExceptionTranslator;
-import com.bd.bern.oatz.service.dto.SkillAppliedCriteria;
 import com.bd.bern.oatz.service.SkillAppliedQueryService;
-
+import com.bd.bern.oatz.service.SkillAppliedService;
+import com.bd.bern.oatz.service.dto.SkillAppliedDTO;
+import com.bd.bern.oatz.service.mapper.SkillAppliedMapper;
+import com.bd.bern.oatz.web.rest.errors.ExceptionTranslator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,6 +30,7 @@ import org.springframework.validation.Validator;
 import javax.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -59,6 +61,15 @@ public class SkillAppliedResourceIT {
 
     @Autowired
     private SkillAppliedRepository skillAppliedRepository;
+
+    @Mock
+    private SkillAppliedRepository skillAppliedRepositoryMock;
+
+    @Autowired
+    private SkillAppliedMapper skillAppliedMapper;
+
+    @Mock
+    private SkillAppliedService skillAppliedServiceMock;
 
     @Autowired
     private SkillAppliedService skillAppliedService;
@@ -107,7 +118,7 @@ public class SkillAppliedResourceIT {
 
     /**
      * Create an entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
@@ -116,16 +127,6 @@ public class SkillAppliedResourceIT {
             .userId(DEFAULT_USER_ID)
             .usedAt(DEFAULT_USED_AT)
             .description(DEFAULT_DESCRIPTION);
-        // Add required entity
-        Skill skill;
-        if (TestUtil.findAll(em, Skill.class).isEmpty()) {
-            skill = SkillResourceIT.createEntity(em);
-            em.persist(skill);
-            em.flush();
-        } else {
-            skill = TestUtil.findAll(em, Skill.class).get(0);
-        }
-        skillApplied.setSkill(skill);
         // Add required entity
         Project project;
         if (TestUtil.findAll(em, Project.class).isEmpty()) {
@@ -136,11 +137,22 @@ public class SkillAppliedResourceIT {
             project = TestUtil.findAll(em, Project.class).get(0);
         }
         skillApplied.setProject(project);
+        // Add required entity
+        Skill skill;
+        if (TestUtil.findAll(em, Skill.class).isEmpty()) {
+            skill = SkillResourceIT.createEntity(em);
+            em.persist(skill);
+            em.flush();
+        } else {
+            skill = TestUtil.findAll(em, Skill.class).get(0);
+        }
+        skillApplied.getSkills().add(skill);
         return skillApplied;
     }
+
     /**
      * Create an updated entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
@@ -149,16 +161,6 @@ public class SkillAppliedResourceIT {
             .userId(UPDATED_USER_ID)
             .usedAt(UPDATED_USED_AT)
             .description(UPDATED_DESCRIPTION);
-        // Add required entity
-        Skill skill;
-        if (TestUtil.findAll(em, Skill.class).isEmpty()) {
-            skill = SkillResourceIT.createUpdatedEntity(em);
-            em.persist(skill);
-            em.flush();
-        } else {
-            skill = TestUtil.findAll(em, Skill.class).get(0);
-        }
-        skillApplied.setSkill(skill);
         // Add required entity
         Project project;
         if (TestUtil.findAll(em, Project.class).isEmpty()) {
@@ -169,6 +171,16 @@ public class SkillAppliedResourceIT {
             project = TestUtil.findAll(em, Project.class).get(0);
         }
         skillApplied.setProject(project);
+        // Add required entity
+        Skill skill;
+        if (TestUtil.findAll(em, Skill.class).isEmpty()) {
+            skill = SkillResourceIT.createUpdatedEntity(em);
+            em.persist(skill);
+            em.flush();
+        } else {
+            skill = TestUtil.findAll(em, Skill.class).get(0);
+        }
+        skillApplied.getSkills().add(skill);
         return skillApplied;
     }
 
@@ -183,9 +195,10 @@ public class SkillAppliedResourceIT {
         int databaseSizeBeforeCreate = skillAppliedRepository.findAll().size();
 
         // Create the SkillApplied
+        SkillAppliedDTO skillAppliedDTO = skillAppliedMapper.toDto(skillApplied);
         restSkillAppliedMockMvc.perform(post("/api/skill-applieds")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(skillApplied)))
+            .content(TestUtil.convertObjectToJsonBytes(skillAppliedDTO)))
             .andExpect(status().isCreated());
 
         // Validate the SkillApplied in the database
@@ -207,11 +220,12 @@ public class SkillAppliedResourceIT {
 
         // Create the SkillApplied with an existing ID
         skillApplied.setId(1L);
+        SkillAppliedDTO skillAppliedDTO = skillAppliedMapper.toDto(skillApplied);
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restSkillAppliedMockMvc.perform(post("/api/skill-applieds")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(skillApplied)))
+            .content(TestUtil.convertObjectToJsonBytes(skillAppliedDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the SkillApplied in the database
@@ -231,10 +245,11 @@ public class SkillAppliedResourceIT {
         skillApplied.setUsedAt(null);
 
         // Create the SkillApplied, which fails.
+        SkillAppliedDTO skillAppliedDTO = skillAppliedMapper.toDto(skillApplied);
 
         restSkillAppliedMockMvc.perform(post("/api/skill-applieds")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(skillApplied)))
+            .content(TestUtil.convertObjectToJsonBytes(skillAppliedDTO)))
             .andExpect(status().isBadRequest());
 
         List<SkillApplied> skillAppliedList = skillAppliedRepository.findAll();
@@ -256,7 +271,40 @@ public class SkillAppliedResourceIT {
             .andExpect(jsonPath("$.[*].usedAt").value(hasItem(DEFAULT_USED_AT.toString())))
             .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)));
     }
-    
+
+    @SuppressWarnings({"unchecked"})
+    public void getAllSkillAppliedsWithEagerRelationshipsIsEnabled() throws Exception {
+        SkillAppliedResource skillAppliedResource = new SkillAppliedResource(skillAppliedServiceMock, skillAppliedQueryService);
+        when(skillAppliedServiceMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
+
+        MockMvc restSkillAppliedMockMvc = MockMvcBuilders.standaloneSetup(skillAppliedResource)
+            .setCustomArgumentResolvers(pageableArgumentResolver)
+            .setControllerAdvice(exceptionTranslator)
+            .setConversionService(createFormattingConversionService())
+            .setMessageConverters(jacksonMessageConverter).build();
+
+        restSkillAppliedMockMvc.perform(get("/api/skill-applieds?eagerload=true"))
+            .andExpect(status().isOk());
+
+        verify(skillAppliedServiceMock, times(1)).findAllWithEagerRelationships(any());
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public void getAllSkillAppliedsWithEagerRelationshipsIsNotEnabled() throws Exception {
+        SkillAppliedResource skillAppliedResource = new SkillAppliedResource(skillAppliedServiceMock, skillAppliedQueryService);
+        when(skillAppliedServiceMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
+        MockMvc restSkillAppliedMockMvc = MockMvcBuilders.standaloneSetup(skillAppliedResource)
+            .setCustomArgumentResolvers(pageableArgumentResolver)
+            .setControllerAdvice(exceptionTranslator)
+            .setConversionService(createFormattingConversionService())
+            .setMessageConverters(jacksonMessageConverter).build();
+
+        restSkillAppliedMockMvc.perform(get("/api/skill-applieds?eagerload=true"))
+            .andExpect(status().isOk());
+
+        verify(skillAppliedServiceMock, times(1)).findAllWithEagerRelationships(any());
+    }
+
     @Test
     @Transactional
     public void getSkillApplied() throws Exception {
@@ -534,7 +582,8 @@ public class SkillAppliedResourceIT {
         // Get all the skillAppliedList where description is null
         defaultSkillAppliedShouldNotBeFound("description.specified=false");
     }
-                @Test
+
+    @Test
     @Transactional
     public void getAllSkillAppliedsByDescriptionContainsSomething() throws Exception {
         // Initialize the database
@@ -558,22 +607,6 @@ public class SkillAppliedResourceIT {
 
         // Get all the skillAppliedList where description does not contain UPDATED_DESCRIPTION
         defaultSkillAppliedShouldBeFound("description.doesNotContain=" + UPDATED_DESCRIPTION);
-    }
-
-
-    @Test
-    @Transactional
-    public void getAllSkillAppliedsBySkillIsEqualToSomething() throws Exception {
-        // Get already existing entity
-        Skill skill = skillApplied.getSkill();
-        skillAppliedRepository.saveAndFlush(skillApplied);
-        Long skillId = skill.getId();
-
-        // Get all the skillAppliedList where skill equals to skillId
-        defaultSkillAppliedShouldBeFound("skillId.equals=" + skillId);
-
-        // Get all the skillAppliedList where skill equals to skillId + 1
-        defaultSkillAppliedShouldNotBeFound("skillId.equals=" + (skillId + 1));
     }
 
 
@@ -641,9 +674,7 @@ public class SkillAppliedResourceIT {
     @Transactional
     public void updateSkillApplied() throws Exception {
         // Initialize the database
-        skillAppliedService.save(skillApplied);
-        // As the test used the service layer, reset the Elasticsearch mock repository
-        reset(mockSkillAppliedSearchRepository);
+        skillAppliedRepository.saveAndFlush(skillApplied);
 
         int databaseSizeBeforeUpdate = skillAppliedRepository.findAll().size();
 
@@ -655,10 +686,11 @@ public class SkillAppliedResourceIT {
             .userId(UPDATED_USER_ID)
             .usedAt(UPDATED_USED_AT)
             .description(UPDATED_DESCRIPTION);
+        SkillAppliedDTO skillAppliedDTO = skillAppliedMapper.toDto(updatedSkillApplied);
 
         restSkillAppliedMockMvc.perform(put("/api/skill-applieds")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(updatedSkillApplied)))
+            .content(TestUtil.convertObjectToJsonBytes(skillAppliedDTO)))
             .andExpect(status().isOk());
 
         // Validate the SkillApplied in the database
@@ -679,11 +711,12 @@ public class SkillAppliedResourceIT {
         int databaseSizeBeforeUpdate = skillAppliedRepository.findAll().size();
 
         // Create the SkillApplied
+        SkillAppliedDTO skillAppliedDTO = skillAppliedMapper.toDto(skillApplied);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restSkillAppliedMockMvc.perform(put("/api/skill-applieds")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(skillApplied)))
+            .content(TestUtil.convertObjectToJsonBytes(skillAppliedDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the SkillApplied in the database
@@ -698,7 +731,7 @@ public class SkillAppliedResourceIT {
     @Transactional
     public void deleteSkillApplied() throws Exception {
         // Initialize the database
-        skillAppliedService.save(skillApplied);
+        skillAppliedRepository.saveAndFlush(skillApplied);
 
         int databaseSizeBeforeDelete = skillAppliedRepository.findAll().size();
 
@@ -719,7 +752,7 @@ public class SkillAppliedResourceIT {
     @Transactional
     public void searchSkillApplied() throws Exception {
         // Initialize the database
-        skillAppliedService.save(skillApplied);
+        skillAppliedRepository.saveAndFlush(skillApplied);
         when(mockSkillAppliedSearchRepository.search(queryStringQuery("id:" + skillApplied.getId()), PageRequest.of(0, 20)))
             .thenReturn(new PageImpl<>(Collections.singletonList(skillApplied), PageRequest.of(0, 1), 1));
         // Search the skillApplied
@@ -745,5 +778,28 @@ public class SkillAppliedResourceIT {
         assertThat(skillApplied1).isNotEqualTo(skillApplied2);
         skillApplied1.setId(null);
         assertThat(skillApplied1).isNotEqualTo(skillApplied2);
+    }
+
+    @Test
+    @Transactional
+    public void dtoEqualsVerifier() throws Exception {
+        TestUtil.equalsVerifier(SkillAppliedDTO.class);
+        SkillAppliedDTO skillAppliedDTO1 = new SkillAppliedDTO();
+        skillAppliedDTO1.setId(1L);
+        SkillAppliedDTO skillAppliedDTO2 = new SkillAppliedDTO();
+        assertThat(skillAppliedDTO1).isNotEqualTo(skillAppliedDTO2);
+        skillAppliedDTO2.setId(skillAppliedDTO1.getId());
+        assertThat(skillAppliedDTO1).isEqualTo(skillAppliedDTO2);
+        skillAppliedDTO2.setId(2L);
+        assertThat(skillAppliedDTO1).isNotEqualTo(skillAppliedDTO2);
+        skillAppliedDTO1.setId(null);
+        assertThat(skillAppliedDTO1).isNotEqualTo(skillAppliedDTO2);
+    }
+
+    @Test
+    @Transactional
+    public void testEntityFromId() {
+        assertThat(skillAppliedMapper.fromId(42L).getId()).isEqualTo(42);
+        assertThat(skillAppliedMapper.fromId(null)).isNull();
     }
 }

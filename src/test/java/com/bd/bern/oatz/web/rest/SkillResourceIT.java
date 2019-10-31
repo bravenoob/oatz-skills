@@ -5,6 +5,8 @@ import com.bd.bern.oatz.domain.Skill;
 import com.bd.bern.oatz.repository.SkillRepository;
 import com.bd.bern.oatz.repository.search.SkillSearchRepository;
 import com.bd.bern.oatz.service.SkillService;
+import com.bd.bern.oatz.service.dto.SkillDTO;
+import com.bd.bern.oatz.service.mapper.SkillMapper;
 import com.bd.bern.oatz.web.rest.errors.ExceptionTranslator;
 import com.bd.bern.oatz.service.dto.SkillCriteria;
 import com.bd.bern.oatz.service.SkillQueryService;
@@ -47,6 +49,9 @@ public class SkillResourceIT {
 
     @Autowired
     private SkillRepository skillRepository;
+
+    @Autowired
+    private SkillMapper skillMapper;
 
     @Autowired
     private SkillService skillService;
@@ -127,9 +132,10 @@ public class SkillResourceIT {
         int databaseSizeBeforeCreate = skillRepository.findAll().size();
 
         // Create the Skill
+        SkillDTO skillDTO = skillMapper.toDto(skill);
         restSkillMockMvc.perform(post("/api/skills")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(skill)))
+            .content(TestUtil.convertObjectToJsonBytes(skillDTO)))
             .andExpect(status().isCreated());
 
         // Validate the Skill in the database
@@ -149,11 +155,12 @@ public class SkillResourceIT {
 
         // Create the Skill with an existing ID
         skill.setId(1L);
+        SkillDTO skillDTO = skillMapper.toDto(skill);
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restSkillMockMvc.perform(post("/api/skills")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(skill)))
+            .content(TestUtil.convertObjectToJsonBytes(skillDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Skill in the database
@@ -173,10 +180,11 @@ public class SkillResourceIT {
         skill.setSkillName(null);
 
         // Create the Skill, which fails.
+        SkillDTO skillDTO = skillMapper.toDto(skill);
 
         restSkillMockMvc.perform(post("/api/skills")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(skill)))
+            .content(TestUtil.convertObjectToJsonBytes(skillDTO)))
             .andExpect(status().isBadRequest());
 
         List<Skill> skillList = skillRepository.findAll();
@@ -335,9 +343,7 @@ public class SkillResourceIT {
     @Transactional
     public void updateSkill() throws Exception {
         // Initialize the database
-        skillService.save(skill);
-        // As the test used the service layer, reset the Elasticsearch mock repository
-        reset(mockSkillSearchRepository);
+        skillRepository.saveAndFlush(skill);
 
         int databaseSizeBeforeUpdate = skillRepository.findAll().size();
 
@@ -347,10 +353,11 @@ public class SkillResourceIT {
         em.detach(updatedSkill);
         updatedSkill
             .skillName(UPDATED_SKILL_NAME);
+        SkillDTO skillDTO = skillMapper.toDto(updatedSkill);
 
         restSkillMockMvc.perform(put("/api/skills")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(updatedSkill)))
+            .content(TestUtil.convertObjectToJsonBytes(skillDTO)))
             .andExpect(status().isOk());
 
         // Validate the Skill in the database
@@ -369,11 +376,12 @@ public class SkillResourceIT {
         int databaseSizeBeforeUpdate = skillRepository.findAll().size();
 
         // Create the Skill
+        SkillDTO skillDTO = skillMapper.toDto(skill);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restSkillMockMvc.perform(put("/api/skills")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(skill)))
+            .content(TestUtil.convertObjectToJsonBytes(skillDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Skill in the database
@@ -388,7 +396,7 @@ public class SkillResourceIT {
     @Transactional
     public void deleteSkill() throws Exception {
         // Initialize the database
-        skillService.save(skill);
+        skillRepository.saveAndFlush(skill);
 
         int databaseSizeBeforeDelete = skillRepository.findAll().size();
 
@@ -409,7 +417,7 @@ public class SkillResourceIT {
     @Transactional
     public void searchSkill() throws Exception {
         // Initialize the database
-        skillService.save(skill);
+        skillRepository.saveAndFlush(skill);
         when(mockSkillSearchRepository.search(queryStringQuery("id:" + skill.getId()), PageRequest.of(0, 20)))
             .thenReturn(new PageImpl<>(Collections.singletonList(skill), PageRequest.of(0, 1), 1));
         // Search the skill
@@ -433,5 +441,28 @@ public class SkillResourceIT {
         assertThat(skill1).isNotEqualTo(skill2);
         skill1.setId(null);
         assertThat(skill1).isNotEqualTo(skill2);
+    }
+
+    @Test
+    @Transactional
+    public void dtoEqualsVerifier() throws Exception {
+        TestUtil.equalsVerifier(SkillDTO.class);
+        SkillDTO skillDTO1 = new SkillDTO();
+        skillDTO1.setId(1L);
+        SkillDTO skillDTO2 = new SkillDTO();
+        assertThat(skillDTO1).isNotEqualTo(skillDTO2);
+        skillDTO2.setId(skillDTO1.getId());
+        assertThat(skillDTO1).isEqualTo(skillDTO2);
+        skillDTO2.setId(2L);
+        assertThat(skillDTO1).isNotEqualTo(skillDTO2);
+        skillDTO1.setId(null);
+        assertThat(skillDTO1).isNotEqualTo(skillDTO2);
+    }
+
+    @Test
+    @Transactional
+    public void testEntityFromId() {
+        assertThat(skillMapper.fromId(42L).getId()).isEqualTo(42);
+        assertThat(skillMapper.fromId(null)).isNull();
     }
 }

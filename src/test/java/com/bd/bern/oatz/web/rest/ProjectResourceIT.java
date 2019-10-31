@@ -6,6 +6,8 @@ import com.bd.bern.oatz.domain.Enterprise;
 import com.bd.bern.oatz.repository.ProjectRepository;
 import com.bd.bern.oatz.repository.search.ProjectSearchRepository;
 import com.bd.bern.oatz.service.ProjectService;
+import com.bd.bern.oatz.service.dto.ProjectDTO;
+import com.bd.bern.oatz.service.mapper.ProjectMapper;
 import com.bd.bern.oatz.web.rest.errors.ExceptionTranslator;
 import com.bd.bern.oatz.service.dto.ProjectCriteria;
 import com.bd.bern.oatz.service.ProjectQueryService;
@@ -59,6 +61,9 @@ public class ProjectResourceIT {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private ProjectMapper projectMapper;
 
     @Autowired
     private ProjectService projectService;
@@ -165,9 +170,10 @@ public class ProjectResourceIT {
         int databaseSizeBeforeCreate = projectRepository.findAll().size();
 
         // Create the Project
+        ProjectDTO projectDTO = projectMapper.toDto(project);
         restProjectMockMvc.perform(post("/api/projects")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(project)))
+            .content(TestUtil.convertObjectToJsonBytes(projectDTO)))
             .andExpect(status().isCreated());
 
         // Validate the Project in the database
@@ -190,11 +196,12 @@ public class ProjectResourceIT {
 
         // Create the Project with an existing ID
         project.setId(1L);
+        ProjectDTO projectDTO = projectMapper.toDto(project);
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restProjectMockMvc.perform(post("/api/projects")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(project)))
+            .content(TestUtil.convertObjectToJsonBytes(projectDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Project in the database
@@ -214,10 +221,11 @@ public class ProjectResourceIT {
         project.setTitle(null);
 
         // Create the Project, which fails.
+        ProjectDTO projectDTO = projectMapper.toDto(project);
 
         restProjectMockMvc.perform(post("/api/projects")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(project)))
+            .content(TestUtil.convertObjectToJsonBytes(projectDTO)))
             .andExpect(status().isBadRequest());
 
         List<Project> projectList = projectRepository.findAll();
@@ -232,10 +240,11 @@ public class ProjectResourceIT {
         project.setType(null);
 
         // Create the Project, which fails.
+        ProjectDTO projectDTO = projectMapper.toDto(project);
 
         restProjectMockMvc.perform(post("/api/projects")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(project)))
+            .content(TestUtil.convertObjectToJsonBytes(projectDTO)))
             .andExpect(status().isBadRequest());
 
         List<Project> projectList = projectRepository.findAll();
@@ -250,10 +259,11 @@ public class ProjectResourceIT {
         project.setUserId(null);
 
         // Create the Project, which fails.
+        ProjectDTO projectDTO = projectMapper.toDto(project);
 
         restProjectMockMvc.perform(post("/api/projects")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(project)))
+            .content(TestUtil.convertObjectToJsonBytes(projectDTO)))
             .andExpect(status().isBadRequest());
 
         List<Project> projectList = projectRepository.findAll();
@@ -672,9 +682,7 @@ public class ProjectResourceIT {
     @Transactional
     public void updateProject() throws Exception {
         // Initialize the database
-        projectService.save(project);
-        // As the test used the service layer, reset the Elasticsearch mock repository
-        reset(mockProjectSearchRepository);
+        projectRepository.saveAndFlush(project);
 
         int databaseSizeBeforeUpdate = projectRepository.findAll().size();
 
@@ -687,10 +695,11 @@ public class ProjectResourceIT {
             .description(UPDATED_DESCRIPTION)
             .type(UPDATED_TYPE)
             .userId(UPDATED_USER_ID);
+        ProjectDTO projectDTO = projectMapper.toDto(updatedProject);
 
         restProjectMockMvc.perform(put("/api/projects")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(updatedProject)))
+            .content(TestUtil.convertObjectToJsonBytes(projectDTO)))
             .andExpect(status().isOk());
 
         // Validate the Project in the database
@@ -712,11 +721,12 @@ public class ProjectResourceIT {
         int databaseSizeBeforeUpdate = projectRepository.findAll().size();
 
         // Create the Project
+        ProjectDTO projectDTO = projectMapper.toDto(project);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restProjectMockMvc.perform(put("/api/projects")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(project)))
+            .content(TestUtil.convertObjectToJsonBytes(projectDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Project in the database
@@ -731,7 +741,7 @@ public class ProjectResourceIT {
     @Transactional
     public void deleteProject() throws Exception {
         // Initialize the database
-        projectService.save(project);
+        projectRepository.saveAndFlush(project);
 
         int databaseSizeBeforeDelete = projectRepository.findAll().size();
 
@@ -752,7 +762,7 @@ public class ProjectResourceIT {
     @Transactional
     public void searchProject() throws Exception {
         // Initialize the database
-        projectService.save(project);
+        projectRepository.saveAndFlush(project);
         when(mockProjectSearchRepository.search(queryStringQuery("id:" + project.getId()), PageRequest.of(0, 20)))
             .thenReturn(new PageImpl<>(Collections.singletonList(project), PageRequest.of(0, 1), 1));
         // Search the project
@@ -779,5 +789,28 @@ public class ProjectResourceIT {
         assertThat(project1).isNotEqualTo(project2);
         project1.setId(null);
         assertThat(project1).isNotEqualTo(project2);
+    }
+
+    @Test
+    @Transactional
+    public void dtoEqualsVerifier() throws Exception {
+        TestUtil.equalsVerifier(ProjectDTO.class);
+        ProjectDTO projectDTO1 = new ProjectDTO();
+        projectDTO1.setId(1L);
+        ProjectDTO projectDTO2 = new ProjectDTO();
+        assertThat(projectDTO1).isNotEqualTo(projectDTO2);
+        projectDTO2.setId(projectDTO1.getId());
+        assertThat(projectDTO1).isEqualTo(projectDTO2);
+        projectDTO2.setId(2L);
+        assertThat(projectDTO1).isNotEqualTo(projectDTO2);
+        projectDTO1.setId(null);
+        assertThat(projectDTO1).isNotEqualTo(projectDTO2);
+    }
+
+    @Test
+    @Transactional
+    public void testEntityFromId() {
+        assertThat(projectMapper.fromId(42L).getId()).isEqualTo(42);
+        assertThat(projectMapper.fromId(null)).isNull();
     }
 }

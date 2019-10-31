@@ -19,12 +19,14 @@ import com.bd.bern.oatz.domain.*; // for static metamodels
 import com.bd.bern.oatz.repository.EnterpriseRepository;
 import com.bd.bern.oatz.repository.search.EnterpriseSearchRepository;
 import com.bd.bern.oatz.service.dto.EnterpriseCriteria;
+import com.bd.bern.oatz.service.dto.EnterpriseDTO;
+import com.bd.bern.oatz.service.mapper.EnterpriseMapper;
 
 /**
  * Service for executing complex queries for {@link Enterprise} entities in the database.
  * The main input is a {@link EnterpriseCriteria} which gets converted to {@link Specification},
  * in a way that all the filters must apply.
- * It returns a {@link List} of {@link Enterprise} or a {@link Page} of {@link Enterprise} which fulfills the criteria.
+ * It returns a {@link List} of {@link EnterpriseDTO} or a {@link Page} of {@link EnterpriseDTO} which fulfills the criteria.
  */
 @Service
 @Transactional(readOnly = true)
@@ -34,36 +36,40 @@ public class EnterpriseQueryService extends QueryService<Enterprise> {
 
     private final EnterpriseRepository enterpriseRepository;
 
+    private final EnterpriseMapper enterpriseMapper;
+
     private final EnterpriseSearchRepository enterpriseSearchRepository;
 
-    public EnterpriseQueryService(EnterpriseRepository enterpriseRepository, EnterpriseSearchRepository enterpriseSearchRepository) {
+    public EnterpriseQueryService(EnterpriseRepository enterpriseRepository, EnterpriseMapper enterpriseMapper, EnterpriseSearchRepository enterpriseSearchRepository) {
         this.enterpriseRepository = enterpriseRepository;
+        this.enterpriseMapper = enterpriseMapper;
         this.enterpriseSearchRepository = enterpriseSearchRepository;
     }
 
     /**
-     * Return a {@link List} of {@link Enterprise} which matches the criteria from the database.
+     * Return a {@link List} of {@link EnterpriseDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public List<Enterprise> findByCriteria(EnterpriseCriteria criteria) {
+    public List<EnterpriseDTO> findByCriteria(EnterpriseCriteria criteria) {
         log.debug("find by criteria : {}", criteria);
         final Specification<Enterprise> specification = createSpecification(criteria);
-        return enterpriseRepository.findAll(specification);
+        return enterpriseMapper.toDto(enterpriseRepository.findAll(specification));
     }
 
     /**
-     * Return a {@link Page} of {@link Enterprise} which matches the criteria from the database.
+     * Return a {@link Page} of {@link EnterpriseDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public Page<Enterprise> findByCriteria(EnterpriseCriteria criteria, Pageable page) {
+    public Page<EnterpriseDTO> findByCriteria(EnterpriseCriteria criteria, Pageable page) {
         log.debug("find by criteria : {}, page: {}", criteria, page);
         final Specification<Enterprise> specification = createSpecification(criteria);
-        return enterpriseRepository.findAll(specification, page);
+        return enterpriseRepository.findAll(specification, page)
+            .map(enterpriseMapper::toDto);
     }
 
     /**

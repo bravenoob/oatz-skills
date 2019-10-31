@@ -1,8 +1,8 @@
 package com.bd.bern.oatz.web.rest;
 
-import com.bd.bern.oatz.domain.Enterprise;
 import com.bd.bern.oatz.service.EnterpriseService;
 import com.bd.bern.oatz.web.rest.errors.BadRequestAlertException;
+import com.bd.bern.oatz.service.dto.EnterpriseDTO;
 import com.bd.bern.oatz.service.dto.EnterpriseCriteria;
 import com.bd.bern.oatz.service.EnterpriseQueryService;
 
@@ -56,17 +56,17 @@ public class EnterpriseResource {
     /**
      * {@code POST  /enterprises} : Create a new enterprise.
      *
-     * @param enterprise the enterprise to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new enterprise, or with status {@code 400 (Bad Request)} if the enterprise has already an ID.
+     * @param enterpriseDTO the enterpriseDTO to create.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new enterpriseDTO, or with status {@code 400 (Bad Request)} if the enterprise has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/enterprises")
-    public ResponseEntity<Enterprise> createEnterprise(@Valid @RequestBody Enterprise enterprise) throws URISyntaxException {
-        log.debug("REST request to save Enterprise : {}", enterprise);
-        if (enterprise.getId() != null) {
+    public ResponseEntity<EnterpriseDTO> createEnterprise(@Valid @RequestBody EnterpriseDTO enterpriseDTO) throws URISyntaxException {
+        log.debug("REST request to save Enterprise : {}", enterpriseDTO);
+        if (enterpriseDTO.getId() != null) {
             throw new BadRequestAlertException("A new enterprise cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Enterprise result = enterpriseService.save(enterprise);
+        EnterpriseDTO result = enterpriseService.save(enterpriseDTO);
         return ResponseEntity.created(new URI("/api/enterprises/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -75,21 +75,21 @@ public class EnterpriseResource {
     /**
      * {@code PUT  /enterprises} : Updates an existing enterprise.
      *
-     * @param enterprise the enterprise to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated enterprise,
-     * or with status {@code 400 (Bad Request)} if the enterprise is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the enterprise couldn't be updated.
+     * @param enterpriseDTO the enterpriseDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated enterpriseDTO,
+     * or with status {@code 400 (Bad Request)} if the enterpriseDTO is not valid,
+     * or with status {@code 500 (Internal Server Error)} if the enterpriseDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/enterprises")
-    public ResponseEntity<Enterprise> updateEnterprise(@Valid @RequestBody Enterprise enterprise) throws URISyntaxException {
-        log.debug("REST request to update Enterprise : {}", enterprise);
-        if (enterprise.getId() == null) {
+    public ResponseEntity<EnterpriseDTO> updateEnterprise(@Valid @RequestBody EnterpriseDTO enterpriseDTO) throws URISyntaxException {
+        log.debug("REST request to update Enterprise : {}", enterpriseDTO);
+        if (enterpriseDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        Enterprise result = enterpriseService.save(enterprise);
+        EnterpriseDTO result = enterpriseService.save(enterpriseDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, enterprise.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, enterpriseDTO.getId().toString()))
             .body(result);
     }
 
@@ -103,9 +103,9 @@ public class EnterpriseResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of enterprises in body.
      */
     @GetMapping("/enterprises")
-    public ResponseEntity<List<Enterprise>> getAllEnterprises(EnterpriseCriteria criteria, Pageable pageable) {
+    public ResponseEntity<List<EnterpriseDTO>> getAllEnterprises(EnterpriseCriteria criteria, Pageable pageable) {
         log.debug("REST request to get Enterprises by criteria: {}", criteria);
-        Page<Enterprise> page = enterpriseQueryService.findByCriteria(criteria, pageable);
+        Page<EnterpriseDTO> page = enterpriseQueryService.findByCriteria(criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -125,20 +125,20 @@ public class EnterpriseResource {
     /**
      * {@code GET  /enterprises/:id} : get the "id" enterprise.
      *
-     * @param id the id of the enterprise to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the enterprise, or with status {@code 404 (Not Found)}.
+     * @param id the id of the enterpriseDTO to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the enterpriseDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/enterprises/{id}")
-    public ResponseEntity<Enterprise> getEnterprise(@PathVariable Long id) {
+    public ResponseEntity<EnterpriseDTO> getEnterprise(@PathVariable Long id) {
         log.debug("REST request to get Enterprise : {}", id);
-        Optional<Enterprise> enterprise = enterpriseService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(enterprise);
+        Optional<EnterpriseDTO> enterpriseDTO = enterpriseService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(enterpriseDTO);
     }
 
     /**
      * {@code DELETE  /enterprises/:id} : delete the "id" enterprise.
      *
-     * @param id the id of the enterprise to delete.
+     * @param id the id of the enterpriseDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/enterprises/{id}")
@@ -157,9 +157,9 @@ public class EnterpriseResource {
      * @return the result of the search.
      */
     @GetMapping("/_search/enterprises")
-    public ResponseEntity<List<Enterprise>> searchEnterprises(@RequestParam String query, Pageable pageable) {
+    public ResponseEntity<List<EnterpriseDTO>> searchEnterprises(@RequestParam String query, Pageable pageable) {
         log.debug("REST request to search for a page of Enterprises for query {}", query);
-        Page<Enterprise> page = enterpriseService.search(query, pageable);
+        Page<EnterpriseDTO> page = enterpriseService.search(query, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
